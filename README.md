@@ -115,15 +115,6 @@ cd matchmentor
 
 ---
 
-## 👥 Integrantes
-
-| Nome | Papel | GitHub |
-|------|-------|--------|
-| Valmir | — | — |
-| — | — | — |
-
----
-
 ## 📊 Status do Projeto
 
 🚧 **Em desenvolvimento** — iniciado em maio de 2026.
