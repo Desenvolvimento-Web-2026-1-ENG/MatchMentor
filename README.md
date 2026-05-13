@@ -75,10 +75,10 @@ A definir
 
 ```bash
 # Clone o repositório
-git clone https://github.com/usuario/nome-do-repo.git
+git clone https://github.com/Monteiro-Jr-Dev/matchmentor.git
 
 # Acesse a pasta do projeto
-cd nome-do-repo
+cd matchmentor
 
 # Instale as dependências
 # (comando a definir conforme tecnologia escolhida)
@@ -126,6 +126,4 @@ cd nome-do-repo
 
 ## 📊 Status do Projeto
 
-🚧 **Em desenvolvimento** — iniciado em maio de 2026.# matchmentor
----
-Plataforma que conecta alunos experientes (mentores) a calouros que precisam de auxílio em disciplinas específicas.
+🚧 **Em desenvolvimento** — iniciado em maio de 2026.
