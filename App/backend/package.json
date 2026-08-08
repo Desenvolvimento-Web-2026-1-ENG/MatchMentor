@@ -12,12 +12,14 @@
   "license": "ISC",
   "type": "module",
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
     "@types/express": "^5.0.6",
     "@types/node": "^26.1.2",
     "tsx": "^4.23.6",
     "typescript": "^7.0.2"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "express": "^5.2.1"
   }
 }

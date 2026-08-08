@@ -1,3 +1,5 @@
+import type { Disciplina } from "./Disciplina.js";
+
 export interface Usuario {
   id: number;
   nome: string;
