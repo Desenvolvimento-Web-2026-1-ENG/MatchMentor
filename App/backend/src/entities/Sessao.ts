@@ -1,8 +1,7 @@
-export interface Sessao {
-  id: number;
-  mentorId: number;
-  mentoradoId: number;
-  dataHora: Date;
-  duracaoMinutos: number;
+import type { SolicitacaoBase } from "./SolicitacaoBase.js";
+
+export interface Sessao extends SolicitacaoBase {
+  linkReuniao: string;
+  feedbackMentorado?: string;
   status: "agendada" | "concluida" | "cancelada";
 }

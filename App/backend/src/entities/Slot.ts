@@ -1,8 +1,5 @@
-export interface Slot {
-  id: number;
-  mentorId: number;
-  disciplinaId: number;
-  dataHora: Date;
-  duracaoMinutos: number;
+import type { SlotBase } from "./SlotBase.js";
+
+export interface Slot extends SlotBase {
   status: "disponivel" | "indisponivel";
 }
