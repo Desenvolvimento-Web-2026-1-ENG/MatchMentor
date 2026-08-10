@@ -1,6 +1,6 @@
 import type { Disciplina } from '../entities/Disciplina.js';
 import type { IDisciplinaRepository } from '../repositories/IDisciplinaRepository.js';
-import type { CriarDisciplinaDTO } from './dtos/DisciplinaDTO.js';
+import type { DetalhesDisciplinaDTO } from './dtos/DisciplinaDTO.js';
 import type { IUsuarioRepository } from '../repositories/IUsuarioRepository.js';
 import type { Mentor } from '../entities/Mentor.js';
 import type { Mentorado } from '../entities/Mentorado.js';
@@ -8,7 +8,7 @@ import type { Mentorado } from '../entities/Mentorado.js';
 export class DisciplinaService {
     constructor(private disciplinaRepository: IDisciplinaRepository, private usuarioRepository: IUsuarioRepository) {}
 
-    criarDisciplina(disciplina: CriarDisciplinaDTO): Disciplina {
+    criarDisciplina(disciplina: DetalhesDisciplinaDTO): Disciplina {
         return this.disciplinaRepository.criar({
             id: 0, // O ID será gerado pelo repositório
             nome: disciplina.nome,

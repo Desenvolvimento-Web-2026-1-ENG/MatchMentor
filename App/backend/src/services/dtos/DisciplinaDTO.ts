@@ -1,4 +1,4 @@
-export interface CriarDisciplinaDTO {
+export interface DetalhesDisciplinaDTO {
   nome: string;
   descricao: string;
 }
