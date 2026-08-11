@@ -75,7 +75,7 @@ export class SolicitacaoService {
     return solicitacoes ? solicitacoes.map(this.mapSolicitacaoToDTO) : [];
   }
 
-  procesarSolicitacao(
+  processarSolicitacao(
     solicitacaoId: number,
     status: "aceita" | "recusada",
   ): Sessao | void {
