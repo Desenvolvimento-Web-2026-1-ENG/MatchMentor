@@ -5,8 +5,9 @@ import type { ISessaoRepository } from "../repositories/ISessaoRepository.js";
 import type { CriarSolicitacaoDTO } from "./dtos/SolicitacaoDTO.js";
 import type { Slot } from "../entities/Slot.js";
 import type { Solicitacao } from "../entities/Solicitacao.js";
+import type { Sessao } from "../entities/Sessao.js";
 
-export class MatchMakingService {
+export class SolicitacaoService {
   constructor(
     private slotRepository: ISlotRepository,
     private usuarioRepository: IUsuarioRepository,
@@ -77,7 +78,7 @@ export class MatchMakingService {
   procesarSolicitacao(
     solicitacaoId: number,
     status: "aceita" | "recusada",
-  ): boolean {
+  ): Sessao | void {
     const solicitacao = this.solicitacaoRepository.buscarPorId(solicitacaoId);
     if (!solicitacao) {
       throw new Error("Solicitação não encontrada.");
@@ -90,11 +91,14 @@ export class MatchMakingService {
       solicitacaoId,
       status,
     );
-
+    
     if (!solicitacaoAtualizada) {
       throw new Error("Erro ao atualizar o status da solicitação.");
     }
-    return true;
+
+    if (status === "aceita") {
+      return this.criarSessao(solicitacao);
+    }
   }
 
   criarSessao(solicitacao: Solicitacao) {
