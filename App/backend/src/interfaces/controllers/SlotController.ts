@@ -1,10 +1,15 @@
 import type { SlotService } from "../../services/SlotService.js";
 
+const DURACAO_MINUTOS_DEFAULT = 30;
+
 export class SlotController {
   constructor(private slotService: SlotService) {}
 
   criar(req: any, res: any) {
     try {
+      req.body.dataHora = new Date(req.body.dataHora);
+      req.body.duracaoMinutos = DURACAO_MINUTOS_DEFAULT;
+      req.body.status = "disponivel";
       const slot = this.slotService.criar(req.body);
       res.status(201).json(slot);
     } catch (error: any) {

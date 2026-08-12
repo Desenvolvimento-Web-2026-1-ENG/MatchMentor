@@ -7,4 +7,5 @@ export interface Usuario {
   senhaHash: string;
   dataCriacao: Date;
   perfil: "mentor" | "mentorado";
+  disciplinas: Disciplina[];
 }

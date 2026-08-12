@@ -2,8 +2,6 @@ import type { Disciplina } from '../entities/Disciplina.js';
 import type { IDisciplinaRepository } from '../repositories/IDisciplinaRepository.js';
 import type { DetalhesDisciplinaDTO } from './dtos/DisciplinaDTO.js';
 import type { IUsuarioRepository } from '../repositories/IUsuarioRepository.js';
-import type { Mentor } from '../entities/Mentor.js';
-import type { Mentorado } from '../entities/Mentorado.js';
 
 export class DisciplinaService {
     constructor(private disciplinaRepository: IDisciplinaRepository, private usuarioRepository: IUsuarioRepository) {}
@@ -29,16 +27,7 @@ export class DisciplinaService {
             throw new Error('Usuário não encontrado');
         }
 
-        switch (usuario.perfil) {
-            case "mentor":
-                (usuario as Mentor).disciplinasMentoradas.push(disciplina);
-                break;
-            case "mentorado":
-                (usuario as Mentorado).disciplinasInteresse.push(disciplina);
-                break;
-            default:
-                throw new Error('Perfil de usuário desconhecido');
-        }
+        usuario.disciplinas.push(disciplina);
     }
 
     removerDisciplinaDoUsuario(usuarioId: number, disciplinaId: number): void {
@@ -47,15 +36,6 @@ export class DisciplinaService {
             throw new Error('Usuário não encontrado');
         }
 
-        switch (usuario.perfil) {
-            case "mentor":
-                (usuario as Mentor).disciplinasMentoradas = (usuario as Mentor).disciplinasMentoradas.filter(d => d.id !== disciplinaId);
-                break;
-            case "mentorado":
-                (usuario as Mentorado).disciplinasInteresse = (usuario as Mentorado).disciplinasInteresse.filter(d => d.id !== disciplinaId);
-                break;
-            default:
-                throw new Error('Perfil de usuário desconhecido');
-        }
+        usuario.disciplinas = usuario.disciplinas.filter(d => d.id !== disciplinaId);
     }
 }

@@ -1,5 +1,3 @@
-import type { Mentorado } from "../../entities/Mentorado.js";
-import type { Mentor } from "../../entities/Mentor.js";
 import type { Disciplina } from "../../entities/Disciplina.js";
 import type { DisciplinaService } from "../../services/DisciplinaService.js";
 import type { UsuarioService } from "../../services/UsuarioService.js";
@@ -46,17 +44,7 @@ export class DisciplinaController {
       }
 
       let disciplinas: Disciplina[] = [];
-      switch (usuario.perfil) {
-        case "mentor":
-          disciplinas = (usuario as Mentor).disciplinasMentoradas;
-          break;
-        case "mentorado":
-          disciplinas = (usuario as Mentorado).disciplinasInteresse;
-          break;
-        default:
-          res.status(400).json({ error: "Perfil de usuário desconhecido." });
-          return;
-      }
+      disciplinas = usuario.disciplinas;
 
       res.status(200).json(disciplinas);
     } catch (error: any) {

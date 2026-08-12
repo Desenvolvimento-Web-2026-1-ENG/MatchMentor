@@ -18,5 +18,5 @@ app.use('/api/v1', sessaoRoutes);
 const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`\n✅ Servidor rodando na porta ${PORT}`);
-    console.log(`🌐 Teste a API em: http://localhost:${PORT}/api/v1/tarefas`);
+    console.log(`🌐 Teste a API em: http://localhost:${PORT}/api/v1/`);
 });
