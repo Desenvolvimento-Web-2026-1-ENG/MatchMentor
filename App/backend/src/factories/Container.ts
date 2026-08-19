@@ -17,10 +17,10 @@ const solicitacaoRepository = new SolicitacaoRepositoryInMemory();
 const usuarioRepository = new UsuarioRepositoryInMemory();
 
 const disciplinaService = new DisciplinaService(disciplinaRepository, usuarioRepository);
-const solicitacaoService = new SolicitacaoService(slotRepository, usuarioRepository, solicitacaoRepository, sessaoRepository);
-const sessaoService = new SessaoService(sessaoRepository);
+const solicitacaoService = new SolicitacaoService(slotRepository, solicitacaoRepository);
+const sessaoService = new SessaoService(sessaoRepository, slotRepository);
 const slotService = new SlotService(slotRepository);
-const usuarioService = new UsuarioService(usuarioRepository);
+const usuarioService = new UsuarioService(usuarioRepository, slotRepository);
 
 export {
   disciplinaService,

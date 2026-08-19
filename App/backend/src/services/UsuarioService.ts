@@ -1,30 +1,13 @@
-/*
-export interface Usuario {
-  id: number;
-  nome: string;
-  email: string;
-  senhaHash: string;
-  dataCriacao: Date;
-  perfil: "mentor" | "mentorado";
-}
-
-export interface Mentorado extends Usuario {
-  disciplinasInteresse: Disciplina[];
-}
-
-export interface Mentor extends Usuario {
-  disciplinasMentoradas: Disciplina[];
-}
-*/
 import type { IUsuarioRepository } from "../repositories/IUsuarioRepository.js";
 import type { Usuario } from "../entities/Usuario.js";
 import type { CriarUsuarioDTO } from "./dtos/UsuarioDTO.js";
 import bcrypt from "bcryptjs";
+import type { ISlotRepository } from "../repositories/ISlotRepository.js";
 
 const SALT_ROUNDS = 10;
 
 export class UsuarioService {
-  constructor(private usuarioRepository: IUsuarioRepository) {}
+  constructor(private usuarioRepository: IUsuarioRepository, private slotRepository: ISlotRepository) {}
 
   criarUsuario(usuario: CriarUsuarioDTO): Usuario {
     if (this.usuarioRepository.buscarPorEmail(usuario.email)) {
@@ -32,10 +15,6 @@ export class UsuarioService {
     }
 
     let senhaHash = bcrypt.hashSync(usuario.senha, SALT_ROUNDS);
-
-    if (usuario.perfil === "mentor") {
-      // Aqui você pode adicionar lógica específica para mentores, se necessário
-    }
 
     return this.usuarioRepository.criar({
       id: 0, // O ID será gerado pelo repositório
@@ -54,5 +33,18 @@ export class UsuarioService {
 
   buscarUsuarioPorEmail(email: string): Usuario | undefined {
     return this.usuarioRepository.buscarPorEmail(email);
+  }
+
+  buscarMentoresPorDisciplina(disciplinaId: number) {
+    const slots =
+      this.slotRepository.buscarDisponiveisPorDisciplina(disciplinaId);
+    if (!slots) {
+      return [];
+    }
+    const mentorIds = new Set(slots.map((slot) => slot.mentorId));
+    const mentores = Array.from(mentorIds)
+      .map((id) => this.usuarioRepository.buscarPorId(id))
+      .filter(Boolean);
+    return mentores;
   }
 }

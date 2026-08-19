@@ -24,15 +24,15 @@ export class SolicitacaoController {
         }
     }
 
-    processarSolicitacao(req: any, res: any) {
+    atualizarSolicitacao(req: any, res: any) {
         try {
             const { solicitacaoId, status } = req.body;
-            const sucesso = this.solicitacaoService.processarSolicitacao(Number(solicitacaoId), status);
+            const sucesso = this.solicitacaoService.atualizarSolicitacao(Number(solicitacaoId), status);
             if (!sucesso) {
                 res.status(404).json({ error: "Solicitação não encontrada ou já processada." });
                 return;
             }
-            res.status(200).json({ message: "Solicitação processada com sucesso." });
+            res.status(200).json(sucesso);
         } catch (error: any) {
             res.status(400).json({ error: error.message });
         }

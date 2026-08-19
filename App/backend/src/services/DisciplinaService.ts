@@ -20,8 +20,6 @@ export class DisciplinaService {
             throw new Error('Disciplina não encontrada');
         }
 
-        // Aqui você precisaria de um repositório de usuários para buscar o usuário e adicionar a disciplina.
-        // Este é apenas um exemplo, você precisará implementar a lógica real de acordo com sua arquitetura.
         const usuario = this.usuarioRepository.buscarPorId(usuarioId);
         if (!usuario) {
             throw new Error('Usuário não encontrado');

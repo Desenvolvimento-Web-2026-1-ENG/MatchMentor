@@ -1,9 +1,11 @@
 import type { ISessaoRepository } from "../repositories/ISessaoRepository.js";
 import type { Sessao } from "../entities/Sessao.js";
 import type { BasicSessaoDTO, DetalhesSessaoDTO } from "./dtos/SessaoDTO.js";
+import type { Solicitacao } from "../entities/Solicitacao.js";
+import type { ISlotRepository } from "../repositories/ISlotRepository.js";
 
 export class SessaoService {
-  constructor(private sessaoRepository: ISessaoRepository) {}
+  constructor(private sessaoRepository: ISessaoRepository, private slotRepository: ISlotRepository) {}
 
   adicionarFeedback(sessaoId: number, feedback: string): DetalhesSessaoDTO {
     const sessao = this.sessaoRepository.buscarPorId(sessaoId);
@@ -105,6 +107,30 @@ export class SessaoService {
     }
 
     return true;
+  }
+
+  criarSessao(solicitacao: Solicitacao) {
+    if (solicitacao.status !== "aceita") {
+      throw new Error("A solicitação deve ser aceita antes de criar a sessão.");
+    }
+
+    const sessao = this.sessaoRepository.criar({
+      id: 0, // O ID será gerado pelo repositório
+      mentorId: solicitacao.mentorId,
+      mentoradoId: solicitacao.mentoradoId,
+      duracaoMinutos: solicitacao.duracaoMinutos,
+      disciplinaId: solicitacao.disciplinaId,
+      dataHora: solicitacao.dataHora,
+      status: "agendada",
+      linkReuniao: "", // O link da reunião será gerado posteriormente
+      slots: solicitacao.slots,
+    });
+
+    for (const slot of solicitacao.slots) {
+      this.slotRepository.atualizarStatus(slot.id, "indisponivel");
+    }
+
+    return sessao;
   }
 
   private mapSessaoToDetalhesSessaoDTO(sessao: Sessao): DetalhesSessaoDTO {
