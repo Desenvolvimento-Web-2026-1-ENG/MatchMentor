@@ -5,6 +5,8 @@ import type { Slot } from "../entities/Slot.js";
 import type { Solicitacao } from "../entities/Solicitacao.js";
 import type { Sessao } from "../entities/Sessao.js";
 
+const SLOT_DURATION_MINUTES = 30;
+
 export class SolicitacaoService {
   constructor(
     private slotRepository: ISlotRepository,
@@ -19,12 +21,15 @@ export class SolicitacaoService {
       throw new Error("Nenhum slot disponível para o mentor especificado.");
     }
 
-    const slotsNecessarios = Math.ceil(solicitacao.duracaoMinutos / 30);
+    const slotsNecessarios = Math.ceil(solicitacao.duracaoMinutos / SLOT_DURATION_MINUTES);
     const slotsSelecionados: Slot[] = [];
 
     slotsDisponiveis.sort(
       (a, b) => a.dataHora.getTime() - b.dataHora.getTime(),
     );
+    // Seleciona os slots disponíveis que atendem à duração solicitada
+    // Os slots devem ser sequenciais, separados por intervalos de 30 minutos, e não podem ter slots indisponíveis entre eles
+    // O horário dos slots serão sempre no formato de hora cheia ou meia hora (ex: 10:00, 10:30, 11:00, 11:30, etc.)
     for (const slot of slotsDisponiveis) {
       if (
         slot.dataHora >= solicitacao.dataHora &&

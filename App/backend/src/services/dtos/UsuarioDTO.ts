@@ -4,3 +4,10 @@ export interface CriarUsuarioDTO {
   senha: string;
   perfil: "mentor" | "mentorado";
 }
+
+export interface DadosBasicosUsuarioDTO {
+  id: string;
+  nome: string;
+  email: string;
+  perfil: "mentor" | "mentorado";
+}

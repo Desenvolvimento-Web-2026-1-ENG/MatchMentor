@@ -1,6 +1,6 @@
 import type { IUsuarioRepository } from "../repositories/IUsuarioRepository.js";
 import type { Usuario } from "../entities/Usuario.js";
-import type { CriarUsuarioDTO } from "./dtos/UsuarioDTO.js";
+import type { CriarUsuarioDTO, DadosBasicosUsuarioDTO } from "./dtos/UsuarioDTO.js";
 import bcrypt from "bcryptjs";
 import type { ISlotRepository } from "../repositories/ISlotRepository.js";
 
@@ -45,6 +45,11 @@ export class UsuarioService {
     const mentores = Array.from(mentorIds)
       .map((id) => this.usuarioRepository.buscarPorId(id))
       .filter(Boolean);
-    return mentores;
+    return mentores.map((mentor) => ({
+      id: mentor!.id.toString(),
+      nome: mentor!.nome,
+      email: mentor!.email,
+      perfil: mentor!.perfil,
+    }));
   }
 }
