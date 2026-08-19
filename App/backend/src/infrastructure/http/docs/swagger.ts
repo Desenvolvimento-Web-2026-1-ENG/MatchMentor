@@ -1,7 +1,7 @@
 import swaggerJSDoc from "swagger-jsdoc";
 
 const PORT = process.env.PORT || 3000;
-const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}/api/v1/docs`;
+const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}/api/v1`;
 
 const options: swaggerJSDoc.Options = {
   definition: {

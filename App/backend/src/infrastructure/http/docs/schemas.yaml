@@ -1,0 +1,352 @@
+components:
+  schemas:
+    Disciplina:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Identificador único da disciplina.
+        nome:
+          type: string
+          description: Nome da disciplina.
+        descricao:
+          type: string
+          description: Descrição da disciplina.
+      required:
+        - id
+        - nome
+        - descricao
+
+    CriarDisciplina:
+      type: object
+      properties:
+        nome:
+          type: string
+          description: Nome da disciplina.
+        descricao:
+          type: string
+          description: Descrição da disciplina.
+      required:
+        - nome
+        - descricao
+
+    Usuario:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Identificador único do usuário.
+        nome:
+          type: string
+          description: Nome do usuário.
+        email:
+          type: string
+          format: email
+          description: E-mail do usuário.
+        senhaHash:
+          type: string
+          description: Hash da senha do usuário.
+        dataCriacao:
+          type: string
+          format: date-time
+          description: Data e hora de criação do cadastro.
+        perfil:
+          type: string
+          enum:
+            - mentor
+            - mentorado
+          description: Perfil do usuário na plataforma.
+        disciplinas:
+          type: array
+          items:
+            $ref: '#/components/schemas/Disciplina'
+          description: Disciplinas associadas ao usuário.
+      required:
+        - id
+        - nome
+        - email
+        - senhaHash
+        - dataCriacao
+        - perfil
+        - disciplinas
+
+    CriarUsuario:
+      type: object
+      properties:
+        nome:
+          type: string
+          description: Nome do usuário.
+        email:
+          type: string
+          format: email
+          description: E-mail do usuário.
+        senha:
+          type: string
+          description: Senha em texto puro (será armazenada como hash).
+        perfil:
+          type: string
+          enum:
+            - mentor
+            - mentorado
+          description: Perfil do usuário na plataforma.
+      required:
+        - nome
+        - email
+        - senha
+        - perfil
+
+    SlotBase:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Identificador único do slot.
+        mentorId:
+          type: integer
+          description: Identificador do mentor dono do slot.
+        disciplinaId:
+          type: integer
+          description: Identificador da disciplina do slot.
+        dataHora:
+          type: string
+          format: date-time
+          description: Data e hora de início do slot.
+        duracaoMinutos:
+          type: integer
+          description: Duração do slot em minutos.
+      required:
+        - id
+        - mentorId
+        - disciplinaId
+        - dataHora
+        - duracaoMinutos
+
+    Slot:
+      allOf:
+        - $ref: '#/components/schemas/SlotBase'
+        - type: object
+          properties:
+            status:
+              type: string
+              enum:
+                - disponivel
+                - indisponivel
+              description: Situação atual do slot.
+          required:
+            - status
+
+    CriarSlot:
+      type: object
+      properties:
+        mentorId:
+          type: integer
+          description: Identificador do mentor dono do slot.
+        disciplinaId:
+          type: integer
+          description: Identificador da disciplina do slot.
+        dataHora:
+          type: string
+          format: date-time
+          description: Data e hora de início do slot.
+      required:
+        - mentorId
+        - disciplinaId
+        - dataHora
+
+    SolicitacaoBase:
+      allOf:
+        - $ref: '#/components/schemas/SlotBase'
+        - type: object
+          properties:
+            mentoradoId:
+              type: integer
+              description: Identificador do mentorado que fez a solicitação.
+            slots:
+              type: array
+              items:
+                $ref: '#/components/schemas/Slot'
+              description: Slots reservados para a solicitação.
+          required:
+            - mentoradoId
+            - slots
+
+    Solicitacao:
+      allOf:
+        - $ref: '#/components/schemas/SolicitacaoBase'
+        - type: object
+          properties:
+            status:
+              type: string
+              enum:
+                - pendente
+                - aceita
+                - recusada
+              description: Situação atual da solicitação.
+          required:
+            - status
+
+    CriarSolicitacao:
+      type: object
+      properties:
+        mentorId:
+          type: integer
+          description: Identificador do mentor.
+        mentoradoId:
+          type: integer
+          description: Identificador do mentorado.
+        duracaoMinutos:
+          type: integer
+          description: Duração desejada em minutos.
+        disciplinaId:
+          type: integer
+          description: Identificador da disciplina.
+        dataHora:
+          type: string
+          format: date-time
+          description: Data e hora de início desejada.
+      required:
+        - mentorId
+        - mentoradoId
+        - duracaoMinutos
+        - disciplinaId
+        - dataHora
+
+    AtualizarSolicitacao:
+      type: object
+      properties:
+        solicitacaoId:
+          type: integer
+          description: Identificador da solicitação a ser atualizada.
+        status:
+          type: string
+          enum:
+            - aceita
+            - recusada
+          description: Novo status da solicitação.
+      required:
+        - solicitacaoId
+        - status
+
+    Sessao:
+      allOf:
+        - $ref: '#/components/schemas/SolicitacaoBase'
+        - type: object
+          properties:
+            linkReuniao:
+              type: string
+              description: Link da reunião associada à sessão.
+            feedbackMentorado:
+              type: string
+              description: Feedback opcional do mentorado.
+            status:
+              type: string
+              enum:
+                - agendada
+                - concluida
+                - cancelada
+              description: Situação atual da sessão.
+          required:
+            - linkReuniao
+            - status
+
+    BasicSessao:
+      type: object
+      properties:
+        disciplinaId:
+          type: integer
+          description: Identificador da disciplina da sessão.
+        dataHora:
+          type: string
+          format: date-time
+          description: Data e hora da sessão.
+        duracaoMinutos:
+          type: integer
+          description: Duração da sessão em minutos.
+        status:
+          type: string
+          enum:
+            - agendada
+            - concluida
+            - cancelada
+          description: Situação atual da sessão.
+      required:
+        - disciplinaId
+        - dataHora
+        - duracaoMinutos
+        - status
+
+    DetalhesSessao:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Identificador único da sessão.
+        mentorId:
+          type: integer
+          description: Identificador do mentor.
+        mentoradoId:
+          type: integer
+          description: Identificador do mentorado.
+        disciplinaId:
+          type: integer
+          description: Identificador da disciplina.
+        dataHora:
+          type: string
+          format: date-time
+          description: Data e hora da sessão.
+        duracaoMinutos:
+          type: integer
+          description: Duração da sessão em minutos.
+        linkReuniao:
+          type: string
+          description: Link da reunião da sessão.
+        feedbackMentorado:
+          type: string
+          description: Feedback opcional do mentorado.
+        status:
+          type: string
+          enum:
+            - agendada
+            - concluida
+            - cancelada
+          description: Situação atual da sessão.
+      required:
+        - id
+        - mentorId
+        - mentoradoId
+        - disciplinaId
+        - dataHora
+        - duracaoMinutos
+        - linkReuniao
+        - status
+
+    VinculoDisciplina:
+      type: object
+      properties:
+        usuarioId:
+          type: integer
+          description: Identificador do usuário.
+        disciplinaId:
+          type: integer
+          description: Identificador da disciplina.
+      required:
+        - usuarioId
+        - disciplinaId
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Mensagem descritiva do erro.
+      required:
+        - error
+
+    Message:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Mensagem de confirmação da operação.
+      required:
+        - message
