@@ -8,6 +8,10 @@ export class SlotService {
   constructor(private slotRepository: ISlotRepository) {}
 
   criar(slot: CriarSlotDTO): Slot[] {
+    if (slot.dataHora.getTime() < Date.now()) {
+      throw new Error("Não é possível criar slots com data anterior à atual.");
+    }
+
     const quantidadeSlots = slot.duracaoTotalMinutos / SLOT_DURATION_MINUTES;
     const slotsCriados: Slot[] = [];
 

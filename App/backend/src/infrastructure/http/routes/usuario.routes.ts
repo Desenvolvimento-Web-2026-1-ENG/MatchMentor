@@ -57,7 +57,7 @@ router.post("/usuarios", (req, res) => controller.cadastrar(req, res));
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/Usuario'
+ *                 $ref: '#/components/schemas/DadosBasicosUsuario'
  *       400:
  *         description: Requisição inválida.
  *         content:
