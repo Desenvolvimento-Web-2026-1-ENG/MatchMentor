@@ -5,7 +5,12 @@ export class SlotService {
   constructor(private slotRepository: ISlotRepository) {}
 
   criar(slot: Slot): Slot {
-    return this.slotRepository.criar(slot);
+    return this.slotRepository.criar({
+      ...slot,
+      disciplinaId: 0,
+      status: "disponivel",
+      duracaoMinutos: 30,
+    });
   }
 
   buscarPorMentor(id: number): Slot[] | undefined {

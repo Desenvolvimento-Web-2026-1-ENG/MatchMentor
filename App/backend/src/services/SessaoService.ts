@@ -106,6 +106,14 @@ export class SessaoService {
       throw new Error("Erro ao cancelar a sessão.");
     }
 
+    for (const slot of sessao.slots) {
+      this.slotRepository.atualizar({
+        ...slot,
+        disciplinaId: 0,
+        status: "disponivel",
+      });
+    }
+
     return true;
   }
 
@@ -127,7 +135,11 @@ export class SessaoService {
     });
 
     for (const slot of solicitacao.slots) {
-      this.slotRepository.atualizarStatus(slot.id, "indisponivel");
+      this.slotRepository.atualizar({
+        ...slot,
+        disciplinaId: solicitacao.disciplinaId,
+        status: "indisponivel",
+      });
     }
 
     return sessao;

@@ -6,6 +6,7 @@ export class SolicitacaoController {
 
     criarSolicitacao(req: any, res: any) {
         try {
+            req.body.dataHora = new Date(req.body.dataHora);
             const solicitacaoDTO: CriarSolicitacaoDTO = req.body;
             const solicitacao = this.solicitacaoService.criarSolicitacao(solicitacaoDTO);
             res.status(201).json(solicitacao);
