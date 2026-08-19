@@ -11,7 +11,7 @@ const controller = SlotFactory.criarSlotController();
  *     tags:
  *       - Slots
  *     summary: Cria um novo slot
- *     description: Cria um slot de disponibilidade para um mentor. A duração padrão é de 30 minutos e o status inicial é "disponivel".
+ *     description: Cria um slot de disponibilidade para um mentor. A duração padrão é de 15 minutos e o status inicial é "disponivel".
  *     requestBody:
  *       required: true
  *       content:

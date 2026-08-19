@@ -1,16 +1,33 @@
 import type { ISlotRepository } from "../repositories/ISlotRepository.js";
 import type { Slot } from "../entities/Slot.js";
+import type { CriarSlotDTO } from "./dtos/SlotDTO.js";
+
+const SLOT_DURATION_MINUTES = 15;
 
 export class SlotService {
   constructor(private slotRepository: ISlotRepository) {}
 
-  criar(slot: Slot): Slot {
-    return this.slotRepository.criar({
-      ...slot,
-      disciplinaId: 0,
-      status: "disponivel",
-      duracaoMinutos: 30,
-    });
+  criar(slot: CriarSlotDTO): Slot[] {
+    const quantidadeSlots = slot.duracaoTotalMinutos / SLOT_DURATION_MINUTES;
+    const slotsCriados: Slot[] = [];
+
+    for (let i = 0; i < quantidadeSlots; i++) {
+      const dataHora = new Date(
+        slot.dataHora.getTime() + i * SLOT_DURATION_MINUTES * 60_000,
+      );
+      slotsCriados.push(
+        this.slotRepository.criar({
+          id: 0, // O ID será gerado pelo repositório
+          mentorId: slot.mentorId,
+          disciplinaId: 0,
+          dataHora,
+          duracaoMinutos: SLOT_DURATION_MINUTES,
+          status: "disponivel",
+        }),
+      );
+    }
+
+    return slotsCriados;
   }
 
   buscarPorMentor(id: number): Slot[] | undefined {

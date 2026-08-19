@@ -141,17 +141,17 @@ components:
         mentorId:
           type: integer
           description: Identificador do mentor dono do slot.
-        disciplinaId:
-          type: integer
-          description: Identificador da disciplina do slot.
         dataHora:
           type: string
           format: date-time
-          description: Data e hora de início do slot.
+          description: Data e hora de início do primeiro slot.
+        duracaoTotalMinutos:
+          type: integer
+          description: Duração total do bloco de slots em minutos (múltiplo de 15).
       required:
         - mentorId
-        - disciplinaId
         - dataHora
+        - duracaoTotalMinutos
 
     SolicitacaoBase:
       allOf:

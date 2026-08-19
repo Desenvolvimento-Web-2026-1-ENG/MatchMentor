@@ -5,7 +5,7 @@ import type { Slot } from "../entities/Slot.js";
 import type { Solicitacao } from "../entities/Solicitacao.js";
 import type { Sessao } from "../entities/Sessao.js";
 
-const SLOT_DURATION_MINUTES = 30;
+const SLOT_DURATION_MINUTES = 15;
 
 export class SolicitacaoService {
   constructor(
