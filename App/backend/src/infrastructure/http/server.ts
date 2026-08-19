@@ -4,7 +4,7 @@ import solicitacaoRoutes from './routes/solicitacao.routes.js';
 import slotRoutes from './routes/slot.routes.js';
 import disciplinasRoutes from './routes/disciplinas.routes.js';
 import sessaoRoutes from './routes/sessao.routes.js';
-
+import docsRoutes from './routes/docs.routes.js';
 
 const app = express();
 
@@ -14,6 +14,7 @@ app.use('/api/v1', solicitacaoRoutes);
 app.use('/api/v1', slotRoutes);
 app.use('/api/v1', disciplinasRoutes);
 app.use('/api/v1', sessaoRoutes);
+app.use('/api/v1/docs', docsRoutes);
 
 const PORT = 3000;
 app.listen(PORT, () => {
