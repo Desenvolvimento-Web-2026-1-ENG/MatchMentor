@@ -16,6 +16,9 @@
 ![Dashboard Mentor](../../assets/Mentorado-Dash.png)
 ### Busca de Mentores
 ![Dashboard Mentor](../../assets/Mentorado-Busca.png)
+### Agendar Sessão
+![Dashboard Mentor](../../assets/Mentorado-Agendar-1.png)
+![Dashboard Mentor](../../assets/Mentorado-Agendar-2.png)
 ### Sessões Futuras
 ![Dashboard Mentor](../../assets/Mentorado-Sessoes.png)
 ### Histórico de Sessões

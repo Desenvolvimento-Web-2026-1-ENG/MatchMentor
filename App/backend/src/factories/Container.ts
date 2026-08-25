@@ -18,7 +18,7 @@ const usuarioRepository = new UsuarioRepositoryInMemory();
 
 const disciplinaService = new DisciplinaService(disciplinaRepository, usuarioRepository);
 const solicitacaoService = new SolicitacaoService(slotRepository, solicitacaoRepository);
-const sessaoService = new SessaoService(sessaoRepository, slotRepository);
+const sessaoService = new SessaoService(sessaoRepository, slotRepository, solicitacaoRepository);
 const slotService = new SlotService(slotRepository);
 const usuarioService = new UsuarioService(usuarioRepository, slotRepository);
 

@@ -178,6 +178,22 @@ components:
         - dataHora
         - duracaoTotalMinutos
 
+    AtualizarSlot:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Identificador do slot a ser atualizado.
+        status:
+          type: string
+          enum:
+            - disponivel
+            - indisponivel
+          description: Novo status do slot.
+      required:
+        - id
+        - status
+
     SolicitacaoBase:
       allOf:
         - $ref: '#/components/schemas/SlotBase'
@@ -213,6 +229,9 @@ components:
     CriarSolicitacao:
       type: object
       properties:
+        solicitacaoId:
+          type: integer
+          description: Identificador da solicitação (retornado nas consultas e atualizações).
         mentorId:
           type: integer
           description: Identificador do mentor.
@@ -229,6 +248,13 @@ components:
           type: string
           format: date-time
           description: Data e hora de início desejada.
+        status:
+          type: string
+          enum:
+            - pendente
+            - aceita
+            - recusada
+          description: Situação da solicitação (retornado nas consultas e atualizações).
       required:
         - mentorId
         - mentoradoId
@@ -248,6 +274,21 @@ components:
             - aceita
             - recusada
           description: Novo status da solicitação.
+      required:
+        - solicitacaoId
+        - status
+
+    CriarSessao:
+      type: object
+      properties:
+        solicitacaoId:
+          type: integer
+          description: Identificador da solicitação aceita que dará origem à sessão.
+        status:
+          type: string
+          enum:
+            - aceita
+          description: Status da solicitação. Deve ser "aceita" para criar a sessão.
       required:
         - solicitacaoId
         - status
@@ -277,6 +318,9 @@ components:
     BasicSessao:
       type: object
       properties:
+        id:
+          type: integer
+          description: Identificador único da sessão.
         disciplinaId:
           type: integer
           description: Identificador da disciplina da sessão.
@@ -295,6 +339,7 @@ components:
             - cancelada
           description: Situação atual da sessão.
       required:
+        - id
         - disciplinaId
         - dataHora
         - duracaoMinutos
@@ -343,6 +388,22 @@ components:
         - dataHora
         - duracaoMinutos
         - linkReuniao
+        - status
+
+    AtualizarSessao:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Identificador da sessão a ser atualizada.
+        status:
+          type: string
+          enum:
+            - concluida
+            - cancelada
+          description: Novo status da sessão.
+      required:
+        - id
         - status
 
     VinculoDisciplina:

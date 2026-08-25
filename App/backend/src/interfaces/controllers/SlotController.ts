@@ -25,7 +25,7 @@ export class SlotController {
 
   editar(req: any, res: any) {
     try {
-      const slot = this.slotService.atualizar(req.body);
+      const slot = this.slotService.atualizarStatus(Number(req.body.id), req.body.status);
       if (!slot) {
         res.status(404).json({ error: "Slot não encontrado." });
         return;

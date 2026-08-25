@@ -87,20 +87,14 @@ const controller = SolicitacaoFactory.criarSolicitacaoController();
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/Solicitacao'
+     *               $ref: '#/components/schemas/CriarSolicitacao'
      *       400:
      *         description: Requisição inválida.
      *         content:
      *           application/json:
      *             schema:
      *               $ref: '#/components/schemas/Error'
-     *       404:
-     *         description: Solicitação não encontrada ou já processada.
-     *         content:
-     *           application/json:
-     *             schema:
-     *               $ref: '#/components/schemas/Error'
      */
-router.put("/solicitacoes", (req, res) => controller.atualizarSolicitacao(req, res));
+    router.put("/solicitacoes", (req, res) => controller.atualizarSolicitacao(req, res));
 
 export default router;

@@ -11,13 +11,13 @@ const controller = SessaoFactory.criarSessaoController();
  *     tags:
  *       - Sessões
  *     summary: Cria uma sessão a partir de uma solicitação
- *     description: Cria uma sessão para uma solicitação que já esteja aceita. Os slots da solicitação são marcados como indisponíveis.
+ *     description: Cria uma sessão a partir de uma solicitação já aceita, informando o id da solicitação.
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Solicitacao'
+ *             $ref: '#/components/schemas/CriarSessao'
  *     responses:
  *       201:
  *         description: Sessão criada com sucesso.
@@ -78,26 +78,25 @@ router.get("/usuarios/:usuarioId/sessoes/:perfil", (req, res) => controller.list
 
 /**
  * @openapi
- * /sessoes/{sessaoId}:
+ * /sessoes:
  *   put:
  *     tags:
  *       - Sessões
- *     summary: Marca uma sessão como realizada
- *     description: Atualiza o status de uma sessão agendada para concluída.
- *     parameters:
- *       - in: path
- *         name: sessaoId
- *         required: true
- *         schema:
- *           type: integer
- *         description: Identificador da sessão.
+ *     summary: Atualiza o status de uma sessão
+ *     description: Marca uma sessão agendada como concluída ou cancelada. Ao cancelar, os slots associados voltam a ficar disponíveis.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/AtualizarSessao'
  *     responses:
  *       200:
- *         description: Indica se a operação foi bem-sucedida.
+ *         description: Sessão atualizada com sucesso.
  *         content:
  *           application/json:
  *             schema:
- *               type: boolean
+ *               $ref: '#/components/schemas/BasicSessao'
  *       400:
  *         description: Requisição inválida.
  *         content:
@@ -105,7 +104,7 @@ router.get("/usuarios/:usuarioId/sessoes/:perfil", (req, res) => controller.list
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.put("/sessoes/:sessaoId", (req, res) => controller.atualizarStatusSessao(req, res));
+router.put("/sessoes", (req, res) => controller.atualizarStatusSessao(req, res));
 
 /**
  * @openapi

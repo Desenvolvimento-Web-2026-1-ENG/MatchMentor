@@ -3,7 +3,6 @@ import type { ISolicitacaoRepository } from "../repositories/ISolicitacaoReposit
 import type { CriarSolicitacaoDTO } from "./dtos/SolicitacaoDTO.js";
 import type { Slot } from "../entities/Slot.js";
 import type { Solicitacao } from "../entities/Solicitacao.js";
-import type { Sessao } from "../entities/Sessao.js";
 
 const SLOT_DURATION_MINUTES = 15;
 
@@ -50,7 +49,7 @@ export class SolicitacaoService {
       disciplinaId: solicitacao.disciplinaId,
       dataHora: solicitacao.dataHora,
       status: "pendente",
-      slots: slotsSelecionados,
+      slots: slotsSelecionados.map((slot) => slot.id),
     });
   }
 
@@ -63,13 +62,23 @@ export class SolicitacaoService {
   atualizarSolicitacao(
     solicitacaoId: number,
     status: "aceita" | "recusada",
-  ): Solicitacao | undefined {
+  ): CriarSolicitacaoDTO | undefined {
     const solicitacao = this.solicitacaoRepository.buscarPorId(solicitacaoId);
     if (!solicitacao) {
       throw new Error("Solicitação não encontrada.");
     }
+
     if (solicitacao.status !== "pendente") {
       throw new Error("Solicitação já foi processada.");
+    }
+
+    if (status === "aceita") {
+      for (const slotId of solicitacao.slots) {
+        const slot = this.slotRepository.buscarPorId(slotId);
+        if (!slot || slot.status !== "disponivel") {
+          throw new Error("Um ou mais slots da solicitação não estão disponíveis.");
+        }
+      }
     }
 
     const solicitacaoAtualizada = this.solicitacaoRepository.atualizarStatus(
@@ -79,18 +88,32 @@ export class SolicitacaoService {
     
     if (!solicitacaoAtualizada) {
       throw new Error("Erro ao atualizar o status da solicitação.");
+    }else{
+      if (status === "aceita") {
+        for (const slotId of solicitacaoAtualizada.slots) {
+          const slot = this.slotRepository.buscarPorId(slotId);
+          if (slot) {
+            this.slotRepository.atualizar({
+              ...slot,
+              status: "indisponivel",
+              disciplinaId: solicitacao.disciplinaId,
+            });
+          }
+        }
+      }
     }
-
-    return solicitacaoAtualizada;
+    return this.mapSolicitacaoToDTO(solicitacaoAtualizada);
   }  
 
   mapSolicitacaoToDTO(solicitacao: Solicitacao): CriarSolicitacaoDTO {
     return {
+      solicitacaoId: solicitacao.id,
       mentorId: solicitacao.mentorId,
       mentoradoId: solicitacao.mentoradoId,
       duracaoMinutos: solicitacao.duracaoMinutos,
       disciplinaId: solicitacao.disciplinaId,
       dataHora: solicitacao.dataHora,
+      status: solicitacao.status,
     };
   }
 }

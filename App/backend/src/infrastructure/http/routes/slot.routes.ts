@@ -10,8 +10,8 @@ const controller = SlotFactory.criarSlotController();
  *   post:
  *     tags:
  *       - Slots
- *     summary: Cria um novo slot
- *     description: Cria um slot de disponibilidade para um mentor. A duração padrão é de 15 minutos e o status inicial é "disponivel".
+ *     summary: Cria um bloco de slots
+ *     description: Cria um bloco de slots de disponibilidade para um mentor. Cada slot tem duração de 15 minutos e o status inicial é "disponivel".
  *     requestBody:
  *       required: true
  *       content:
@@ -20,11 +20,13 @@ const controller = SlotFactory.criarSlotController();
  *             $ref: '#/components/schemas/CriarSlot'
  *     responses:
  *       201:
- *         description: Slot criado com sucesso.
+ *         description: Slots criados com sucesso.
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Slot'
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Slot'
  *       400:
  *         description: Requisição inválida.
  *         content:
@@ -75,14 +77,14 @@ router.get("/mentores/:mentorId/slots", (req, res) =>
  *   put:
  *     tags:
  *       - Slots
- *     summary: Atualiza um slot
- *     description: Atualiza os dados de um slot existente, identificado pelo id no corpo da requisição.
+ *     summary: Atualiza o status de um slot
+ *     description: Altera o status (disponivel ou indisponivel) de um slot existente, identificado pelo id no corpo da requisição.
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Slot'
+ *             $ref: '#/components/schemas/AtualizarSlot'
  *     responses:
  *       200:
  *         description: Slot atualizado com sucesso.

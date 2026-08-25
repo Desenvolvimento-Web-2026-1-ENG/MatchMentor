@@ -12,6 +12,10 @@ export class UsuarioRepositoryInMemory implements IUsuarioRepository {
     return this.usuarios.find((usuario) => usuario.email === email);
   }
 
+  listarTodos(): Usuario[] {
+    return this.usuarios;
+  }
+
   criar(usuario: Usuario): Usuario {
     const novoId =
       this.usuarios.length > 0

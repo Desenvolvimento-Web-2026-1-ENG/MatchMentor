@@ -12,6 +12,10 @@ export class SlotRepositoryInMemory implements ISlotRepository {
     return slot;
   }
 
+  buscarPorId(id: number): Slot | undefined {
+    return this.slots.find((slot) => slot.id === id);
+  }
+
   buscarPorMentor(id: number): Slot[] | undefined {
     return this.slots.filter((slot) => slot.mentorId === id);
   }
@@ -24,12 +28,6 @@ export class SlotRepositoryInMemory implements ISlotRepository {
 
   buscarPorDisciplina(id: number): Slot[] | undefined {
     return this.slots.filter((slot) => slot.disciplinaId === id);
-  }
-
-  buscarDisponiveisPorDisciplina(id: number): Slot[] | undefined {
-    return this.slots.filter(
-      (slot) => slot.disciplinaId === id && slot.status === "disponivel",
-    );
   }
 
   atualizarStatus(

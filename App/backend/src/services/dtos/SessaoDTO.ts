@@ -11,6 +11,7 @@ export interface DetalhesSessaoDTO {
 }
 
 export interface BasicSessaoDTO {
+    id: number;
     disciplinaId: number;
     dataHora: Date;
     duracaoMinutos: number;

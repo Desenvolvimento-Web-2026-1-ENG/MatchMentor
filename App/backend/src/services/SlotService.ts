@@ -47,11 +47,6 @@ export class SlotService {
     return this.slotRepository.buscarPorDisciplina(id);
   }
 
-  buscarDisponiveisPorDisciplina(id: number): Slot[] | undefined {
-    const slots = this.slotRepository.buscarDisponiveisPorDisciplina(id);
-    return slots?.filter((slot) => slot.dataHora > new Date());
-  }
-
   atualizarStatus(
     id: number,
     status: "disponivel" | "indisponivel",
@@ -59,11 +54,14 @@ export class SlotService {
     return this.slotRepository.atualizarStatus(id, status);
   }
 
-  atualizar(slot: Slot): Slot | undefined {
-    return this.slotRepository.atualizar(slot);
-  }
-
   deletar(id: number): boolean {
+    const slot = this.slotRepository.buscarPorId(id);
+    if (!slot) {
+      throw new Error("Slot não encontrado");
+    }
+    if (slot.status !== "disponivel") {
+      throw new Error("Não é possível deletar um slot que não está disponível");
+    }
     return this.slotRepository.deletar(id);
   }
 }

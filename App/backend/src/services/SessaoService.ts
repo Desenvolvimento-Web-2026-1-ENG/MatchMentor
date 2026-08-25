@@ -1,11 +1,12 @@
 import type { ISessaoRepository } from "../repositories/ISessaoRepository.js";
+import type { ISolicitacaoRepository } from "../repositories/ISolicitacaoRepository.js";
 import type { Sessao } from "../entities/Sessao.js";
 import type { BasicSessaoDTO, DetalhesSessaoDTO } from "./dtos/SessaoDTO.js";
-import type { Solicitacao } from "../entities/Solicitacao.js";
+import type { CriarSolicitacaoDTO } from "./dtos/SolicitacaoDTO.js";
 import type { ISlotRepository } from "../repositories/ISlotRepository.js";
 
 export class SessaoService {
-  constructor(private sessaoRepository: ISessaoRepository, private slotRepository: ISlotRepository) {}
+  constructor(private sessaoRepository: ISessaoRepository, private slotRepository: ISlotRepository, private solicitacaoRepository: ISolicitacaoRepository) {}
 
   adicionarFeedback(sessaoId: number, feedback: string): DetalhesSessaoDTO {
     const sessao = this.sessaoRepository.buscarPorId(sessaoId);
@@ -67,59 +68,52 @@ export class SessaoService {
     return sessoes.map(this.mapSessaoToBasicSessaoDTO);
   }
 
-  marcarSessaoComoRealizada(sessaoId: number): boolean {
+  atualizarStatusSessao(sessaoId: number, status: "concluida" | "cancelada"): BasicSessaoDTO {
     const sessao = this.sessaoRepository.buscarPorId(sessaoId);
     if (!sessao) {
       throw new Error("Sessão não encontrada.");
     }
-    if (sessao.status !== "agendada") {
-      throw new Error(
-        "A sessão deve estar agendada para ser marcada como realizada.",
-      );
+    if (sessao.status === status) {
+      throw new Error("A sessão já está com o status desejado.");
     }
 
-    const sessaoAtualizada = this.sessaoRepository.atualizarStatus(
-      sessaoId,
-      "concluida",
-    );
+    if (sessao.status === "cancelada") {
+      throw new Error("Não é possível alterar o status de uma sessão cancelada.");
+    }
+    
+    const sessaoAtualizada = this.sessaoRepository.atualizarStatus(sessaoId, status);
     if (!sessaoAtualizada) {
-      throw new Error("Erro ao marcar a sessão como realizada.");
+      throw new Error("Erro ao atualizar o status da sessão.");
+    }else{
+      if (status === "cancelada") {
+        for (const slotId of sessao.slots) {
+          const slot = this.slotRepository.buscarPorId(slotId);
+          if (slot) {
+            this.slotRepository.atualizar({
+              ...slot,
+              disciplinaId: 0,
+              status: "disponivel",
+            });
+          }
+        }
+      }
     }
 
-    return true;
+    return this.mapSessaoToBasicSessaoDTO(sessaoAtualizada);
   }
 
-  cancelarSessao(sessaoId: number): boolean {
-    const sessao = this.sessaoRepository.buscarPorId(sessaoId);
-    if (!sessao) {
-      throw new Error("Sessão não encontrada.");
-    }
-    if (sessao.status !== "agendada") {
-      throw new Error("A sessão deve estar agendada para ser cancelada.");
-    }
-
-    const sessaoAtualizada = this.sessaoRepository.atualizarStatus(
-      sessaoId,
-      "cancelada",
-    );
-    if (!sessaoAtualizada) {
-      throw new Error("Erro ao cancelar a sessão.");
-    }
-
-    for (const slot of sessao.slots) {
-      this.slotRepository.atualizar({
-        ...slot,
-        disciplinaId: 0,
-        status: "disponivel",
-      });
-    }
-
-    return true;
-  }
-
-  criarSessao(solicitacao: Solicitacao) {
-    if (solicitacao.status !== "aceita") {
+  criarSessao(solicitacaoDTO: CriarSolicitacaoDTO) {
+    if (solicitacaoDTO.status !== "aceita") {
       throw new Error("A solicitação deve ser aceita antes de criar a sessão.");
+    }
+
+    if(solicitacaoDTO.solicitacaoId === undefined) {
+      throw new Error("O ID da solicitação é obrigatório para criar uma sessão.");
+    }
+    const solicitacao = this.solicitacaoRepository.buscarPorId(solicitacaoDTO.solicitacaoId);
+    
+    if (!solicitacao) {
+      throw new Error("Solicitação não encontrada.");
     }
 
     const sessao = this.sessaoRepository.criar({
@@ -133,14 +127,6 @@ export class SessaoService {
       linkReuniao: "", // O link da reunião será gerado posteriormente
       slots: solicitacao.slots,
     });
-
-    for (const slot of solicitacao.slots) {
-      this.slotRepository.atualizar({
-        ...slot,
-        disciplinaId: solicitacao.disciplinaId,
-        status: "indisponivel",
-      });
-    }
 
     return sessao;
   }
@@ -161,6 +147,7 @@ export class SessaoService {
 
   private mapSessaoToBasicSessaoDTO(sessao: Sessao): BasicSessaoDTO {
     return {
+      id: sessao.id,
       disciplinaId: sessao.disciplinaId,
       dataHora: sessao.dataHora,
       duracaoMinutos: sessao.duracaoMinutos,

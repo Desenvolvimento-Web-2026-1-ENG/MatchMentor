@@ -25,9 +25,9 @@ export class SessaoController {
 
   atualizarStatusSessao(req: any, res: any) {
     try {
-      const { sessaoId } = req.params;
-      const sessaoAtualizada = this.sessaoService.marcarSessaoComoRealizada(
-        Number(sessaoId),
+      const sessaoAtualizada = this.sessaoService.atualizarStatusSessao(
+        Number(req.body.id),
+        req.body.status
       );
       res.status(200).json(sessaoAtualizada);
     } catch (error: any) {

@@ -35,21 +35,28 @@ export class UsuarioService {
     return this.usuarioRepository.buscarPorEmail(email);
   }
 
-  buscarMentoresPorDisciplina(disciplinaId: number) {
-    const slots =
-      this.slotRepository.buscarDisponiveisPorDisciplina(disciplinaId);
-    if (!slots) {
-      return [];
+  buscarMentoresPorDisciplina(disciplinaId: number): DadosBasicosUsuarioDTO[] {
+
+    const todosMentores = this.usuarioRepository.listarTodos().filter((usuario) => {
+      return usuario.perfil === "mentor" && usuario.disciplinas.some((disciplina) => disciplina.id === disciplinaId);
+    });
+
+    // Lista de mentores que possuem slots disponíveis para a disciplina especificada
+    let mentoresComSlotsDisponiveis: Usuario[] = [];
+    for (const mentor of todosMentores) {
+      const slotsDisponiveis = this.slotRepository.buscarDisponiveisPorMentor(mentor.id);
+      if (slotsDisponiveis && slotsDisponiveis.length > 0) {
+        if (!mentoresComSlotsDisponiveis.some((m) => m.id === mentor.id)) {
+          mentoresComSlotsDisponiveis.push(mentor);
+        }
+      }
     }
-    const mentorIds = new Set(slots.map((slot) => slot.mentorId));
-    const mentores = Array.from(mentorIds)
-      .map((id) => this.usuarioRepository.buscarPorId(id))
-      .filter(Boolean);
-    return mentores.map((mentor) => ({
-      id: mentor!.id.toString(),
-      nome: mentor!.nome,
-      email: mentor!.email,
-      perfil: mentor!.perfil,
+
+    return mentoresComSlotsDisponiveis.map((mentor) => ({
+      id: mentor.id.toString(),
+      nome: mentor.nome,
+      email: mentor.email,
+      perfil: mentor.perfil,
     }));
   }
 }
