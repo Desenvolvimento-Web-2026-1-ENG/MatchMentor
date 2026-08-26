@@ -13,8 +13,6 @@
 - [Como Executar](#como-executar)
 - [Documentação da API (OpenAPI)](#documentacao-da-api-openapi)
 - [Fluxo de Uso](#fluxo-de-uso)
-- [Modelo de Dados](#modelo-de-dados)
-- [Integrantes](#integrantes)
 - [Status do Projeto](#status-do-projeto)
 
 ---
