@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id          Int          @id @default(autoincrement())
+  nome        String
+  email       String       @unique
+  senhaHash   String
+  dataCriacao DateTime     @default(now())
+  perfil      String       // "mentor" | "mentorado"
+  disciplinas Disciplina[]
+}
+
+model Disciplina {
+  id        Int       @id @default(autoincrement())
+  nome      String    @unique
+  descricao String
+  usuarios  Usuario[]
+}
+
+model Slot {
+  id             Int           @id @default(autoincrement())
+  mentorId       Int
+  disciplinaId   Int           @default(0)
+  dataHora       DateTime
+  duracaoMinutos Int
+  status         String        @default("disponivel") // "disponivel" | "indisponivel"
+  solicitacoes   Solicitacao[]
+  sessoes        Sessao[]
+}
+
+model Solicitacao {
+  id             Int      @id @default(autoincrement())
+  mentorId       Int
+  mentoradoId    Int
+  disciplinaId   Int
+  dataHora       DateTime
+  duracaoMinutos Int
+  status         String   @default("pendente") // "pendente" | "aceita" | "recusada"
+  slots          Slot[]
+}
+
+model Sessao {
+  id                Int      @id @default(autoincrement())
+  mentorId          Int
+  mentoradoId       Int
+  disciplinaId      Int
+  dataHora          DateTime
+  duracaoMinutos    Int
+  linkReuniao       String   @default("")
+  feedbackMentorado String?
+  status            String   @default("agendada") // "agendada" | "concluida" | "cancelada"
+  slots             Slot[]
+}

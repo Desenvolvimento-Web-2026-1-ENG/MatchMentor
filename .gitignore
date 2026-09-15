@@ -144,3 +144,6 @@ vite.config.ts.timestamp-*
 
 # others
 docs_locais
+
+# Prisma (banco SQLite local)
+App/backend/prisma/dev.db*
