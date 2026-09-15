@@ -1,0 +1,27 @@
+# Sobe a aplicação inteira (backend + frontend) com um único comando:
+#   docker compose up --build
+#
+# Frontend: http://localhost:8080 (nginx serve o SPA e faz proxy de /api para o backend)
+# Backend:  http://localhost:3000/api/v1 (Swagger em /api/v1/docs)
+services:
+  backend:
+    build: ./App/backend
+    ports:
+      - "3000:3000"
+    environment:
+      # Banco SQLite em caminho absoluto dentro do volume (persiste entre reinícios)
+      - DATABASE_URL=file:/app/data/prod.db
+    volumes:
+      - matchmentor-dados:/app/data
+    restart: unless-stopped
+
+  frontend:
+    build: ./App/frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  matchmentor-dados:

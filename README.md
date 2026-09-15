@@ -11,8 +11,10 @@
 - [Tecnologias Utilizadas](#tecnologias-utilizadas)
 - [Arquitetura](#arquitetura)
 - [Como Executar](#como-executar)
+- [Guia de Telas](#guia-de-telas)
 - [Documentação da API (OpenAPI)](#documentacao-da-api-openapi)
 - [Fluxo de Uso](#fluxo-de-uso)
+- [Entrega P2](#entrega-p2)
 - [Status do Projeto](#status-do-projeto)
 
 ---
@@ -38,7 +40,12 @@ O **MatchMentor** é uma plataforma de matchmaking que conecta mentores a mentor
 - [x] Listagem de sessões por perfil (mentor/mentorado)
 - [x] Marcar sessão como realizada
 - [x] Visualização de detalhes de uma sessão
-- [ ] Autenticação e autorização
+- [x] Interface web (SPA React) com login simplificado por seletor de usuários
+- [x] Área do mentor: painel, disciplinas, calendário de disponibilidade e solicitações
+- [x] Área do mentorado: painel, disciplinas de interesse, busca e solicitação de mentoria
+- [x] Sessões: próximas, histórico, detalhes, cancelar e marcar como realizada
+- [x] Docker Compose para subir backend + frontend com um único comando
+- [ ] Autenticação e autorização (simplificada: login por seletor de usuários)
 - [ ] Feedback de mentorado pós-sessão
 - [ ] Link de reunião 
 
@@ -48,11 +55,12 @@ O **MatchMentor** é uma plataforma de matchmaking que conecta mentores a mentor
 
 | Camada          | Tecnologia              |
 |-----------------|-------------------------|
-| Back-end        | Node.js + Express (TypeScript) |
+| Back-end        | Node.js + Express 5 (TypeScript) |
+| Front-end       | React 19 + Vite + TypeScript + Tailwind CSS v4 + shadcn/ui |
 | Banco de Dados  | SQLite + Prisma ORM     |
-| Autenticação    | — (planejado)           |
-| Front-end       | — (planejado)           |
-| Testes          | — (planejado)           |
+| Autenticação    | Login simplificado (seletor de usuários, sem JWT) |
+| Infraestrutura  | Docker + Docker Compose (nginx servindo o SPA) |
+| Testes          | — (validação manual dos fluxos) |
 
 ---
 
@@ -98,49 +106,97 @@ App/backend/src/
 - **Factory Pattern** — Composição de dependências centralizada nas factories
 - **DTOs** — Objetos de transferência para entrada/saída da API
 
+### Frontend
+
+```
+App/frontend/src/
+├── components/     # ui/ (shadcn/ui), layout do dashboard, calendário semanal
+├── pages/          # telas (login, cadastro, mentor/*, mentorado/*, sessões, perfil)
+├── services/       # camada de acesso à API (axios)
+├── contexts/       # contexto de autenticação (usuário logado)
+├── lib/            # utilitários (calendário, rótulos de status, utils)
+└── types/          # tipos do domínio
+```
+
+### Infraestrutura (Docker Compose)
+
+- **backend** — imagem Node 22 com o Express + Prisma; na subida aplica as migrações pendentes (`prisma migrate deploy`) e grava o SQLite no volume `/app/data`.
+- **frontend** — build estático gerado pelo Vite e servido pelo **nginx**, que também faz proxy de `/api` para o backend.
+- **volume `matchmentor-dados`** — preserva o banco entre reinícios e recriações dos containers (`docker-compose.yml` na raiz do repositório).
+
 ---
 
 ## 🚀 Como Executar
 
+Há dois caminhos para rodar o projeto: **sem Docker** (desenvolvimento local, com hot-reload) e **com Docker Compose** (backend + frontend com um único comando).
+
 ### Pré-requisitos
 
-- [Node.js](https://nodejs.org/) v18+
-- [npm](https://www.npmjs.com/) v9+
+- [Node.js](https://nodejs.org/) v20.19+ (os containers usam Node 22 LTS)
+- [npm](https://www.npmjs.com/) v10+
+- [Docker + Docker Compose](https://docs.docker.com/engine/install/) — apenas para o caminho **com Docker**
 
-### Instalação
+### 1) Sem Docker (desenvolvimento local)
 
 ```bash
 # Clone o repositório
 git clone https://github.com/Monteiro-Jr-Dev/matchmentor.git
 
-# Acesse a pasta do projeto
+# Backend (API em http://localhost:3000)
 cd matchmentor/App/backend
-
-# Instale as dependências
 npm install
+cp .env.example .env      # SQLite em prisma/dev.db
+npm run prisma:migrate    # aplica as migrações
+npm run prisma:seed       # carrega os dados de demonstração
+npm run dev               # sobe a API com hot-reload
 
-# Crie o arquivo de variáveis de ambiente (SQLite em prisma/dev.db)
-cp .env.example .env
-
-# Aplique as migrações e popule o banco com dados de demonstração
-npm run prisma:migrate
-npm run prisma:seed
+# Frontend (SPA em http://localhost:5173) — em outro terminal
+cd matchmentor/App/frontend
+npm install
+cp .env.example .env      # VITE_API_URL=http://localhost:3000/api/v1
+npm run dev
 ```
 
-### Execução
+Com os dois servidores rodando localmente:
+
+| Serviço | URL |
+|---------|-----|
+| Frontend (Vite) | `http://localhost:5173` |
+| API | `http://localhost:3000/api/v1` |
+| Swagger | `http://localhost:3000/api/v1/docs` |
+
+> Modo produção local (sem hot-reload): `npm run build && npm start` em `App/backend`; e `npm run build && npm run preview` em `App/frontend`.
+> Inspeção do banco: `npm run prisma:studio` em `App/backend`.
+
+### 2) Com Docker (Docker Compose)
 
 ```bash
-# Modo desenvolvimento (com hot-reload)
-npm run dev
-
-# Modo produção
-npm run build && npm start
-
-# Inspecionar o banco (interface visual do Prisma)
-npm run prisma:studio
+# Na raiz do repositório
+docker compose up --build        # em versões antigas do Compose: docker-compose up --build
 ```
 
-O servidor iniciará em `http://localhost:3000`. Todos os endpoints usam o prefixo `/api/v1`.
+| Serviço | URL |
+|---------|-----|
+| Aplicação (nginx + SPA) | `http://localhost:8080` |
+| API (porta publicada) | `http://localhost:3000/api/v1` |
+| Swagger | `http://localhost:3000/api/v1/docs` (também via `http://localhost:8080/api/v1/docs`) |
+
+```bash
+# Carregar os dados de demonstração (na primeira execução)
+docker compose exec backend npx prisma db seed
+
+# Parar os containers (os dados permanecem no volume)
+docker compose down
+
+# Parar e apagar o banco, recomeçando do zero
+docker compose down -v
+```
+
+**Como o Docker está montado:**
+
+- `backend` — Node 22 + Express + Prisma; na subida aplica as migrações (`prisma migrate deploy`) e serve a API na porta 3000.
+- `frontend` — SPA gerado pelo Vite e servido pelo **nginx**, que também faz proxy de `/api` para o backend (dispensa CORS no navegador).
+- `matchmentor-dados` — volume nomeado que guarda o SQLite (`/app/data/prod.db`), preservando os dados entre reinícios e recriações dos containers.
 
 ---
 
@@ -183,7 +239,7 @@ Com o servidor em execução, acesse:
 | GET | `/api/v1/sessoes/:sessaoId` | Obtém os detalhes de uma sessão |
 | PUT | `/api/v1/sessoes` | Conclui ou cancela uma sessão |
 
-> O **CORS** está habilitado no servidor Express, permitindo o consumo da API pelo frontend (Vite, em `http://localhost:5173`).
+> O **CORS** está habilitado no servidor Express, permitindo o consumo da API pelo frontend em desenvolvimento (Vite, em `http://localhost:5173`). Com Docker, o SPA consome a API pela mesma origem (proxy `/api` do nginx).
 
 ---
 
@@ -220,13 +276,87 @@ sequenceDiagram
 
 ---
 
+## 📸 Guia de Telas
+
+Telas da interface web (SPA React) e as rotas correspondentes. As imagens ficam em [`docs/screenshots/`](docs/screenshots/).
+
+| # | Tela | Rota | Arquivo |
+|---|------|------|---------|
+| 1 | Login (seletor de usuários) | `/login` | `01-login.png` |
+| 2 | Cadastro | `/cadastro` | `02-cadastro.png` |
+| 3 | Painel do Mentor | `/mentor` | `03-dashboard-mentor.png` |
+| 4 | Calendário de disponibilidade | `/mentor/disponibilidade` | `04-disponibilidade.png` |
+| 5 | Solicitações recebidas | `/mentor/solicitacoes` | `05-solicitacoes.png` |
+| 6 | Painel do Mentorado | `/mentorado` | `06-dashboard-mentorado.png` |
+| 7 | Buscar mentores | `/mentorado/buscar` | `07-buscar-mentores.png` |
+| 8 | Perfil do mentor (com solicitação) | `/mentores/:mentorId` | `08-perfil-mentor.png` |
+| 9 | Minhas Sessões | `/sessoes` | `09-sessoes.png` |
+| 10 | Detalhes da sessão | `/sessoes/:sessaoId` | `10-sessao-detalhes.png` |
+
+**1. Login (seletor de usuários)** — entrada simplificada, sem senha: escolha o usuário cadastrado.
+
+![Login com seletor de usuários](docs/screenshots/01-login.png)
+
+**2. Cadastro** — criação de conta como mentor ou mentorado, com validações.
+
+![Cadastro de usuário](docs/screenshots/02-cadastro.png)
+
+**3. Painel do Mentor** — disciplinas, slots disponíveis, solicitações pendentes e próximas sessões.
+
+![Painel do mentor](docs/screenshots/03-dashboard-mentor.png)
+
+**4. Calendário de disponibilidade** — semana de segunda a domingo, criação de blocos por arrasto, mover/redimensionar/editar/excluir.
+
+![Calendário de disponibilidade](docs/screenshots/04-disponibilidade.png)
+
+**5. Solicitações recebidas** — aceitar (cria a sessão e bloqueia os slots) ou recusar.
+
+![Solicitações recebidas](docs/screenshots/05-solicitacoes.png)
+
+**6. Painel do Mentorado** — disciplinas de interesse e próximas sessões.
+
+![Painel do mentorado](docs/screenshots/06-dashboard-mentorado.png)
+
+**7. Buscar mentores** — busca pelas disciplinas de interesse, com filtro por nome.
+
+![Buscar mentores](docs/screenshots/07-buscar-mentores.png)
+
+**8. Perfil do mentor (com solicitação)** — horários disponíveis e escolha de um trecho do bloco.
+
+![Perfil do mentor](docs/screenshots/08-perfil-mentor.png)
+
+**9. Minhas Sessões** — próximas e histórico, com cancelamento.
+
+![Minhas sessões](docs/screenshots/09-sessoes.png)
+
+**10. Detalhes da sessão** — dados da mentoria, cancelar e marcar como realizada.
+
+![Detalhes da sessão](docs/screenshots/10-sessao-detalhes.png)
+
+---
+
+## 🎁 Entrega P2
+
+- **Release:** [`v2.0.0-p2`](https://github.com/Monteiro-Jr-Dev/matchmentor/releases/tag/v2.0.0-p2) — interface web do MatchMentor (SPA React) integrada ao backend e empacotada em Docker Compose.
+- **Vídeo de demonstração:** _disponível na descrição do release_ — fluxo completo: cadastro → login pelo seletor → disciplinas → disponibilidade → busca → solicitação → aceite → sessão → conclusão.
+- **Como rodar:** `docker compose up --build` (veja [Como Executar](#como-executar)).
+
+**Simplificações acordadas para esta entrega:**
+
+- Sem autenticação real (JWT/sessão): o login usa um **seletor de usuários cadastrados**.
+- Notificações (HU15) e feedback pós-sessão ficaram fora do escopo.
+
+---
+
 ## 📊 Status do Projeto
 
-🚧 **Backend em desenvolvimento** — iniciado em maio de 2026.
+✅ **Entrega P2** — backend, interface web (SPA React) e execução via Docker Compose.
 
 - ✅ CRUD de usuários, disciplinas, slots
 - ✅ Fluxo completo solicitação → sessão → conclusão
 - ✅ Validação de disponibilidade e bloqueio automático de slots
 - ✅ Banco de dados SQLite + Prisma (seed com dados de demonstração)
-- ⏳ Frontend
-- ⏳ Autenticação/autorização
+- ✅ Frontend SPA (React + Vite + Tailwind CSS + shadcn/ui) consumindo a API via axios
+- ✅ Docker Compose (backend + frontend nginx) com volume persistente para o SQLite
+- ⏳ Autenticação real (JWT) — fora do escopo da P2 (login por seletor de usuários)
+- ⏳ Notificações (HU15) e feedback pós-sessão — fora do escopo da P2
