@@ -45,13 +45,13 @@ O **MatchMentor** é uma plataforma de matchmaking que conecta mentores a mentor
 - [x] Área do mentorado: painel, disciplinas de interesse, busca e solicitação de mentoria
 - [x] Sessões: próximas, histórico, detalhes, cancelar e marcar como realizada
 - [x] Docker Compose para subir backend + frontend com um único comando
-- [ ] Autenticação e autorização (simplificada: login por seletor de usuários)
+- [ ] Autenticação e autorização 
 - [ ] Feedback de mentorado pós-sessão
 - [ ] Link de reunião 
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+## Tecnologias Utilizadas
 
 | Camada          | Tecnologia              |
 |-----------------|-------------------------|
@@ -60,11 +60,10 @@ O **MatchMentor** é uma plataforma de matchmaking que conecta mentores a mentor
 | Banco de Dados  | SQLite + Prisma ORM     |
 | Autenticação    | Login simplificado (seletor de usuários, sem JWT) |
 | Infraestrutura  | Docker + Docker Compose (nginx servindo o SPA) |
-| Testes          | — (validação manual dos fluxos) |
 
 ---
 
-## 🏗️ Arquitetura
+## Arquitetura
 
 O backend segue uma **arquitetura em camadas** com separação clara de responsabilidades:
 
@@ -126,7 +125,7 @@ App/frontend/src/
 
 ---
 
-## 🚀 Como Executar
+## Como Executar
 
 Há dois caminhos para rodar o projeto: **sem Docker** (desenvolvimento local, com hot-reload) e **com Docker Compose** (backend + frontend com um único comando).
 
@@ -182,7 +181,7 @@ docker compose up --build        # em versões antigas do Compose: docker-compos
 | Swagger | `http://localhost:3000/api/v1/docs` (também via `http://localhost:8080/api/v1/docs`) |
 
 ```bash
-# Carregar os dados de demonstração (na primeira execução)
+# Carregar os dados de demonstração (primeira execução — veja a seção abaixo)
 docker compose exec backend npx prisma db seed
 
 # Parar os containers (os dados permanecem no volume)
@@ -194,13 +193,13 @@ docker compose down -v
 
 **Como o Docker está montado:**
 
-- `backend` — Node 22 + Express + Prisma; na subida aplica as migrações (`prisma migrate deploy`) e serve a API na porta 3000.
+- `backend` — Node 22 + Express + Prisma; na subida aplica as migrações (`prisma migrate deploy`) e serve a API na porta 3000 — o **seed é um passo separado** (`docker compose exec backend npx prisma db seed`).
 - `frontend` — SPA gerado pelo Vite e servido pelo **nginx**, que também faz proxy de `/api` para o backend (dispensa CORS no navegador).
 - `matchmentor-dados` — volume nomeado que guarda o SQLite (`/app/data/prod.db`), preservando os dados entre reinícios e recriações dos containers.
 
 ---
 
-## 📚 Documentação da API (OpenAPI)
+## Documentação da API (OpenAPI)
 
 A API é documentada com **OpenAPI 3.0**, gerada dinamicamente a partir dos comentários `@openapi` nas rotas e dos modelos centralizados em `schemas.yaml`, usando `swagger-jsdoc` + `swagger-ui-express`.
 
@@ -243,7 +242,7 @@ Com o servidor em execução, acesse:
 
 ---
 
-## 🔄 Fluxo de Uso
+## Fluxo de Uso
 
 ```mermaid
 sequenceDiagram
@@ -276,7 +275,7 @@ sequenceDiagram
 
 ---
 
-## 📸 Guia de Telas
+## Guia de Telas
 
 Telas da interface web (SPA React) e as rotas correspondentes. As imagens ficam em [`docs/screenshots/`](docs/screenshots/).
 
@@ -334,29 +333,3 @@ Telas da interface web (SPA React) e as rotas correspondentes. As imagens ficam 
 ![Detalhes da sessão](docs/screenshots/10-sessao-detalhes.png)
 
 ---
-
-## 🎁 Entrega P2
-
-- **Release:** [`v2.0.0-p2`](https://github.com/Monteiro-Jr-Dev/matchmentor/releases/tag/v2.0.0-p2) — interface web do MatchMentor (SPA React) integrada ao backend e empacotada em Docker Compose.
-- **Vídeo de demonstração:** _disponível na descrição do release_ — fluxo completo: cadastro → login pelo seletor → disciplinas → disponibilidade → busca → solicitação → aceite → sessão → conclusão.
-- **Como rodar:** `docker compose up --build` (veja [Como Executar](#como-executar)).
-
-**Simplificações acordadas para esta entrega:**
-
-- Sem autenticação real (JWT/sessão): o login usa um **seletor de usuários cadastrados**.
-- Notificações (HU15) e feedback pós-sessão ficaram fora do escopo.
-
----
-
-## 📊 Status do Projeto
-
-✅ **Entrega P2** — backend, interface web (SPA React) e execução via Docker Compose.
-
-- ✅ CRUD de usuários, disciplinas, slots
-- ✅ Fluxo completo solicitação → sessão → conclusão
-- ✅ Validação de disponibilidade e bloqueio automático de slots
-- ✅ Banco de dados SQLite + Prisma (seed com dados de demonstração)
-- ✅ Frontend SPA (React + Vite + Tailwind CSS + shadcn/ui) consumindo a API via axios
-- ✅ Docker Compose (backend + frontend nginx) com volume persistente para o SQLite
-- ⏳ Autenticação real (JWT) — fora do escopo da P2 (login por seletor de usuários)
-- ⏳ Notificações (HU15) e feedback pós-sessão — fora do escopo da P2
