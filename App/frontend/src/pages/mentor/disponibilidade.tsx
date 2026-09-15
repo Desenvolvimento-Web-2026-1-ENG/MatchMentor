@@ -37,7 +37,9 @@ import {
   diasDaSemana,
   encontrarConflito,
   formatarPeriodoSemana,
+  horarioDosMinutos,
   inicioDaSemana,
+  minutosDoHorario,
   minutosDesdeMeiaNoite,
 } from '@/lib/calendario'
 import type { BlocoCalendario, ClassificacaoSlots } from '@/lib/calendario'
@@ -64,19 +66,6 @@ type ModoDialogo = 'criar' | 'editar' | 'passado' | 'ocupado' | 'pendente'
 interface DadosDoSlot {
   nome: string
   disciplina: string
-}
-
-function minutosDoHorario(valor: string): number | null {
-  const [horas, minutos] = valor.split(':').map(Number)
-  if (Number.isNaN(horas) || Number.isNaN(minutos)) return null
-  return horas * 60 + minutos
-}
-
-function horarioDosMinutos(minutos: number): string {
-  const normalizado = minutos >= MINUTOS_POR_DIA ? 0 : minutos
-  const horas = Math.floor(normalizado / 60)
-  const resto = normalizado % 60
-  return `${String(horas).padStart(2, '0')}:${String(resto).padStart(2, '0')}`
 }
 
 function proximaHoraCheia(referencia: Date): Date {

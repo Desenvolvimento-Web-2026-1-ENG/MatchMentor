@@ -34,7 +34,7 @@ interface Previa {
 }
 
 interface Sessao {
-  modo: 'selecao' | 'mover' | 'redimensionar'
+  modo: 'selecao' | 'mover' | 'redimensionar' | 'selecionar'
   bloco?: BlocoCalendario
   borda?: 'topo' | 'base'
   /** Minuto de referência absoluto (início do bloco ou âncora da seleção). */
@@ -51,12 +51,22 @@ interface CalendarioSemanalProps {
   blocos: BlocoCalendario[]
   agora: Date
   bloqueado?: boolean
-  onCriarPeriodo: (inicio: Date, fim: Date) => void
-  onMoverBloco: (bloco: BlocoCalendario, novoInicio: Date) => void
-  onRedimensionarBloco: (
+  /**
+   * 'gerenciar' (padrão, área do mentor): criar, mover e redimensionar períodos.
+   * 'selecionar' (área do mentorado): escolher um trecho de um período existente.
+   */
+  modo?: 'gerenciar' | 'selecionar'
+  onCriarPeriodo?: (inicio: Date, fim: Date) => void
+  onMoverBloco?: (bloco: BlocoCalendario, novoInicio: Date) => void
+  onRedimensionarBloco?: (
     bloco: BlocoCalendario,
     novoInicio: Date,
     novoFim: Date,
+  ) => void
+  onSelecionarIntervalo?: (
+    bloco: BlocoCalendario,
+    inicio: Date,
+    fim: Date,
   ) => void
   onAbrirBloco: (bloco: BlocoCalendario) => void
 }
@@ -66,9 +76,11 @@ export function CalendarioSemanal({
   blocos,
   agora,
   bloqueado = false,
+  modo = 'gerenciar',
   onCriarPeriodo,
   onMoverBloco,
   onRedimensionarBloco,
+  onSelecionarIntervalo,
   onAbrirBloco,
 }: CalendarioSemanalProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -153,7 +165,7 @@ export function CalendarioSemanal({
     evento: EventoPointerReact<HTMLDivElement>,
     dia: Date,
   ) => {
-    if (bloqueado || evento.button !== 0) return
+    if (bloqueado || evento.button !== 0 || modo !== 'gerenciar') return
 
     const posicao = posicionarDoEvento(evento)
     if (!posicao) return
@@ -188,11 +200,32 @@ export function CalendarioSemanal({
     moveuRef.current = false
 
     const interativo =
-      bloco.tipo === 'disponivel' && bloco.inicio.getTime() >= agora.getTime()
+      bloco.tipo === 'disponivel' &&
+      (modo === 'selecionar' || bloco.inicio.getTime() >= agora.getTime())
     if (!interativo) return
 
     const posicao = posicionarDoEvento(evento)
     if (!posicao) return
+
+    if (modo === 'selecionar') {
+      const inicioBloco = minutosDesdeMeiaNoite(bloco.inicio)
+      const fimBloco = inicioBloco + bloco.duracaoMinutos
+      const ancora = Math.min(
+        Math.max(encaixarEm15Minutos(posicao.minutos), inicioBloco),
+        fimBloco - MINUTOS_POR_SLOT,
+      )
+      evento.currentTarget.setPointerCapture(evento.pointerId)
+      sessaoRef.current = {
+        modo: 'selecionar',
+        bloco,
+        ancoraMin: ancora,
+        deslocamentoMin: 0,
+        dia: bloco.inicio,
+        origemX: evento.clientX,
+        origemY: evento.clientY,
+      }
+      return
+    }
 
     const alca = (evento.target as HTMLElement)
       .closest('[data-alca]')
@@ -239,6 +272,31 @@ export function CalendarioSemanal({
         Math.max(Math.max(sessao.ancoraMin, ponto), inicio + MINUTOS_POR_SLOT),
         MINUTOS_POR_DIA,
       )
+      definirPrevia({ dia: sessao.dia, inicioMin: inicio, fimMin: fim })
+      return
+    }
+
+    if (sessao.modo === 'selecionar') {
+      const bloco = sessao.bloco
+      if (!bloco) return
+
+      const inicioBloco = minutosDesdeMeiaNoite(bloco.inicio)
+      const fimBloco = inicioBloco + bloco.duracaoMinutos
+      const ponto = Math.min(
+        Math.max(encaixarEm15Minutos(posicao.minutos), inicioBloco),
+        fimBloco,
+      )
+      let inicio = Math.min(sessao.ancoraMin, ponto)
+      let fim = Math.max(sessao.ancoraMin, ponto)
+
+      if (fim - inicio < MINUTOS_POR_SLOT) {
+        if (fim + MINUTOS_POR_SLOT <= fimBloco) {
+          fim = inicio + MINUTOS_POR_SLOT
+        } else {
+          inicio = fim - MINUTOS_POR_SLOT
+        }
+      }
+
       definirPrevia({ dia: sessao.dia, inicioMin: inicio, fimMin: fim })
       return
     }
@@ -292,15 +350,21 @@ export function CalendarioSemanal({
     const fim = dataHoraDoMinuto(previaAtual.dia, previaAtual.fimMin)
 
     if (sessao.modo === 'selecao') {
-      onCriarPeriodo(inicio, fim)
+      onCriarPeriodo?.(inicio, fim)
+      return
+    }
+    if (sessao.modo === 'selecionar') {
+      if (sessao.bloco && moveuRef.current) {
+        onSelecionarIntervalo?.(sessao.bloco, inicio, fim)
+      }
       return
     }
     if (!sessao.bloco || !moveuRef.current) return
 
     if (sessao.modo === 'mover') {
-      onMoverBloco(sessao.bloco, inicio)
+      onMoverBloco?.(sessao.bloco, inicio)
     } else {
-      onRedimensionarBloco(sessao.bloco, inicio, fim)
+      onRedimensionarBloco?.(sessao.bloco, inicio, fim)
     }
   }
 
@@ -373,9 +437,13 @@ export function CalendarioSemanal({
                   {blocosVisiveis
                     .filter((bloco) => chaveDia(bloco.inicio) === chaveDia(dia))
                     .map((bloco) => {
-                      const interativo =
+                      const podeEditar =
+                        modo === 'gerenciar' &&
                         bloco.tipo === 'disponivel' &&
                         bloco.inicio.getTime() >= agora.getTime()
+                      const podeSelecionar =
+                        modo === 'selecionar' && bloco.tipo === 'disponivel'
+                      const interativo = podeEditar || podeSelecionar
                       const altura = Math.max(
                         bloco.duracaoMinutos * PX_POR_MINUTO - 2,
                         ALTURA_MINIMA_BLOCO,
@@ -399,8 +467,10 @@ export function CalendarioSemanal({
                           className={cn(
                             'absolute inset-x-0.5 z-10 flex flex-col overflow-hidden rounded-md border px-1.5 py-1 text-left shadow-sm transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
                             bloco.tipo === 'disponivel' &&
-                              interativo &&
+                              podeEditar &&
                               'border-primary/40 bg-primary/15 hover:bg-primary/25 cursor-grab active:cursor-grabbing',
+                            podeSelecionar &&
+                              'border-primary/40 bg-primary/15 hover:bg-primary/25 cursor-pointer hover:ring-2 hover:ring-primary/40',
                             bloco.tipo === 'disponivel' &&
                               !interativo &&
                               'border-border bg-muted/60 text-muted-foreground',
@@ -424,7 +494,7 @@ export function CalendarioSemanal({
                             onAbrirBloco(bloco)
                           }}
                         >
-                          {interativo && (
+                          {podeEditar && (
                             <span
                               data-alca="topo"
                               className="absolute inset-x-0 top-0 z-20 h-1.5 cursor-ns-resize"
@@ -433,7 +503,7 @@ export function CalendarioSemanal({
 
                           {altura >= 44 && (
                             <span className="flex min-w-0 items-center gap-1">
-                              {interativo && (
+                              {podeEditar && (
                                 <GripVertical className="h-3 w-3 shrink-0 text-muted-foreground" />
                               )}
                               <span className="truncate text-[11px] leading-tight font-semibold">
@@ -447,7 +517,7 @@ export function CalendarioSemanal({
                             </span>
                           )}
 
-                          {interativo && (
+                          {podeEditar && (
                             <span
                               data-alca="base"
                               className="absolute inset-x-0 bottom-0 z-20 h-1.5 cursor-ns-resize"
@@ -482,8 +552,9 @@ export function CalendarioSemanal({
       </div>
 
       <div className="border-t bg-muted/10 px-5 py-3 text-xs text-muted-foreground">
-        Clique (15 min) ou clique e arraste para criar um período. Arraste um período
-        para movê-lo e arraste as extremidades para ajustar início e fim.
+        {modo === 'selecionar'
+          ? 'Clique em um período para solicitar o bloco inteiro ou clique e arraste para escolher um trecho. Os horários seguem intervalos de 15 minutos.'
+          : 'Clique (15 min) ou clique e arraste para criar um período. Arraste um período para movê-lo e arraste as extremidades para ajustar início e fim.'}
       </div>
     </div>
   )

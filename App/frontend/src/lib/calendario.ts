@@ -75,6 +75,21 @@ export function encaixarEm15Minutos(minutos: number): number {
   return Math.round(minutos / MINUTOS_POR_SLOT) * MINUTOS_POR_SLOT
 }
 
+/** Converte "09:30" em 570 minutos desde a meia-noite. */
+export function minutosDoHorario(valor: string): number | null {
+  const [horas, minutos] = valor.split(':').map(Number)
+  if (Number.isNaN(horas) || Number.isNaN(minutos)) return null
+  return horas * 60 + minutos
+}
+
+/** Converte 570 minutos em "09:30" (1440 vira "00:00", o fim do dia). */
+export function horarioDosMinutos(minutos: number): string {
+  const normalizado = minutos >= MINUTOS_POR_DIA ? 0 : minutos
+  const horas = Math.floor(normalizado / 60)
+  const resto = normalizado % 60
+  return `${String(horas).padStart(2, '0')}:${String(resto).padStart(2, '0')}`
+}
+
 function tipoDoSlot(slot: Slot, classificacao: ClassificacaoSlots): TipoBloco {
   if (classificacao.ocupados.has(slot.id)) return 'ocupado'
   if (classificacao.pendentes.has(slot.id)) return 'pendente'
