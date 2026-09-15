@@ -1,14 +1,15 @@
 import type { Sessao } from "../entities/Sessao.js";
 
 export interface ISessaoRepository {
-  criar(solicitacao: Sessao): Sessao;
-  buscarPorId(id: number): Sessao | undefined;
-  buscarPorMentorado(id: number): Sessao[] | undefined;
-  buscarAgendadasPorMentorado(id: number): Sessao[] | undefined;
-  buscarConcluidasPorMentorado(id: number): Sessao[] | undefined;
-  buscarPorMentor(id: number): Sessao[] | undefined;
-  buscarAgendadasPorMentor(id: number): Sessao[] | undefined;
-  buscarConcluidasPorMentor(id: number): Sessao[] | undefined;
-  atualizarStatus(id: number, status: "agendada" | "concluida" | "cancelada"): Sessao | undefined;
-  deletar(id: number): boolean;
+  criar(solicitacao: Sessao): Promise<Sessao>;
+  buscarPorId(id: number): Promise<Sessao | undefined>;
+  buscarPorMentorado(id: number): Promise<Sessao[] | undefined>;
+  buscarAgendadasPorMentorado(id: number): Promise<Sessao[] | undefined>;
+  buscarConcluidasPorMentorado(id: number): Promise<Sessao[] | undefined>;
+  buscarPorMentor(id: number): Promise<Sessao[] | undefined>;
+  buscarAgendadasPorMentor(id: number): Promise<Sessao[] | undefined>;
+  buscarConcluidasPorMentor(id: number): Promise<Sessao[] | undefined>;
+  atualizarStatus(id: number, status: "agendada" | "concluida" | "cancelada"): Promise<Sessao | undefined>;
+  atualizar(sessao: Sessao): Promise<Sessao | undefined>;
+  deletar(id: number): Promise<boolean>;
 }

@@ -9,8 +9,8 @@ const SALT_ROUNDS = 10;
 export class UsuarioService {
   constructor(private usuarioRepository: IUsuarioRepository, private slotRepository: ISlotRepository) {}
 
-  criarUsuario(usuario: CriarUsuarioDTO): Usuario {
-    if (this.usuarioRepository.buscarPorEmail(usuario.email)) {
+  async criarUsuario(usuario: CriarUsuarioDTO): Promise<Usuario> {
+    if (await this.usuarioRepository.buscarPorEmail(usuario.email)) {
       throw new Error("E-mail já cadastrado");
     }
 
@@ -27,24 +27,32 @@ export class UsuarioService {
     });
   }
 
-  buscarUsuarioPorId(id: number): Usuario | undefined {
+  async buscarUsuarioPorId(id: number): Promise<Usuario | undefined> {
     return this.usuarioRepository.buscarPorId(id);
   }
 
-  buscarUsuarioPorEmail(email: string): Usuario | undefined {
+  async buscarUsuarioPorEmail(email: string): Promise<Usuario | undefined> {
     return this.usuarioRepository.buscarPorEmail(email);
   }
 
-  buscarMentoresPorDisciplina(disciplinaId: number): DadosBasicosUsuarioDTO[] {
-
-    const todosMentores = this.usuarioRepository.listarTodos().filter((usuario) => {
-      return usuario.perfil === "mentor" && usuario.disciplinas.some((disciplina) => disciplina.id === disciplinaId);
-    });
+  async buscarMentoresPorDisciplina(
+    disciplinaId: number,
+  ): Promise<DadosBasicosUsuarioDTO[]> {
+    const todosMentores = (await this.usuarioRepository.listarTodos()).filter(
+      (usuario) => {
+        return (
+          usuario.perfil === "mentor" &&
+          usuario.disciplinas.some((disciplina) => disciplina.id === disciplinaId)
+        );
+      },
+    );
 
     // Lista de mentores que possuem slots disponíveis para a disciplina especificada
     let mentoresComSlotsDisponiveis: Usuario[] = [];
     for (const mentor of todosMentores) {
-      const slotsDisponiveis = this.slotRepository.buscarDisponiveisPorMentor(mentor.id);
+      const slotsDisponiveis = await this.slotRepository.buscarDisponiveisPorMentor(
+        mentor.id,
+      );
       if (slotsDisponiveis && slotsDisponiveis.length > 0) {
         if (!mentoresComSlotsDisponiveis.some((m) => m.id === mentor.id)) {
           mentoresComSlotsDisponiveis.push(mentor);

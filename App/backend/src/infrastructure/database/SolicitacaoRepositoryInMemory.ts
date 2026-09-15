@@ -4,7 +4,7 @@ import type { ISolicitacaoRepository } from "../../repositories/ISolicitacaoRepo
 export class SolicitacaoRepositoryInMemory implements ISolicitacaoRepository {
   private solicitacoes: Solicitacao[] = [];
 
-  criar(solicitacao: Solicitacao): Solicitacao {
+  async criar(solicitacao: Solicitacao): Promise<Solicitacao> {
     const novoId =
       this.solicitacoes.length > 0
         ? Math.max(...this.solicitacoes.map((s) => s.id)) + 1
@@ -14,33 +14,33 @@ export class SolicitacaoRepositoryInMemory implements ISolicitacaoRepository {
     return solicitacao;
   }
 
-  buscarPorId(id: number): Solicitacao | undefined {
+  async buscarPorId(id: number): Promise<Solicitacao | undefined> {
     return this.solicitacoes.find((solicitacao) => solicitacao.id === id);
   }
 
-  buscarPorAluno(id: number): Solicitacao[] | undefined {
+  async buscarPorAluno(id: number): Promise<Solicitacao[] | undefined> {
     return this.solicitacoes.filter(
       (solicitacao) => solicitacao.mentoradoId === id,
     );
   }
 
-  buscarPorMentor(id: number): Solicitacao[] | undefined {
+  async buscarPorMentor(id: number): Promise<Solicitacao[] | undefined> {
     return this.solicitacoes.filter(
       (solicitacao) => solicitacao.mentorId === id,
     );
   }
 
-  buscarPendentesPorMentor(id: number): Solicitacao[] | undefined {
+  async buscarPendentesPorMentor(id: number): Promise<Solicitacao[] | undefined> {
     return this.solicitacoes.filter(
       (solicitacao) =>
         solicitacao.mentorId === id && solicitacao.status === "pendente",
     );
   }
 
-  atualizarStatus(
+  async atualizarStatus(
     id: number,
     status: "pendente" | "aceita" | "recusada",
-  ): Solicitacao | undefined {
+  ): Promise<Solicitacao | undefined> {
     const solicitacao = this.solicitacoes.find(
       (solicitacao) => solicitacao.id === id,
     );
@@ -51,7 +51,7 @@ export class SolicitacaoRepositoryInMemory implements ISolicitacaoRepository {
     return undefined;
   }
 
-  deletar(id: number): boolean {
+  async deletar(id: number): Promise<boolean> {
     const index = this.solicitacoes.findIndex(
       (solicitacao) => solicitacao.id === id,
     );

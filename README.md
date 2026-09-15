@@ -49,7 +49,7 @@ O **MatchMentor** é uma plataforma de matchmaking que conecta mentores a mentor
 | Camada          | Tecnologia              |
 |-----------------|-------------------------|
 | Back-end        | Node.js + Express (TypeScript) |
-| Banco de Dados  | Em memória (repositórios in-memory) |
+| Banco de Dados  | SQLite + Prisma ORM     |
 | Autenticação    | — (planejado)           |
 | Front-end       | — (planejado)           |
 | Testes          | — (planejado)           |
@@ -83,7 +83,7 @@ App/backend/src/
 │   ├── ISolicitacaoRepository.ts
 │   └── ISessaoRepository.ts
 ├── infrastructure/
-│   ├── database/         # Implementações in-memory dos repositórios
+│   ├── database/         # Persistência: repositórios Prisma (SQLite) e in-memory (referência)
 │   └── http/
 │       ├── server.ts     # Configuração do Express (porta 3000, prefixo /api/v1)
 │       └── routes/       # Definições das rotas por domínio
@@ -93,7 +93,7 @@ App/backend/src/
 ```
 
 **Padrões utilizados:**
-- **Repository Pattern** — Contratos (`I*Repository`) com implementações in-memory, facilitando migração futura para banco real
+- **Repository Pattern** — Contratos (`I*Repository`) com implementações em Prisma (SQLite) e versões in-memory mantidas para referência/testes
 - **Service Layer** — Toda lógica de negócio isolada nos services
 - **Factory Pattern** — Composição de dependências centralizada nas factories
 - **DTOs** — Objetos de transferência para entrada/saída da API
@@ -118,6 +118,13 @@ cd matchmentor/App/backend
 
 # Instale as dependências
 npm install
+
+# Crie o arquivo de variáveis de ambiente (SQLite em prisma/dev.db)
+cp .env.example .env
+
+# Aplique as migrações e popule o banco com dados de demonstração
+npm run prisma:migrate
+npm run prisma:seed
 ```
 
 ### Execução
@@ -128,6 +135,9 @@ npm run dev
 
 # Modo produção
 npm run build && npm start
+
+# Inspecionar o banco (interface visual do Prisma)
+npm run prisma:studio
 ```
 
 O servidor iniciará em `http://localhost:3000`. Todos os endpoints usam o prefixo `/api/v1`.
@@ -189,6 +199,6 @@ sequenceDiagram
 - ✅ CRUD de usuários, disciplinas, slots
 - ✅ Fluxo completo solicitação → sessão → conclusão
 - ✅ Validação de disponibilidade e bloqueio automático de slots
+- ✅ Banco de dados SQLite + Prisma (seed com dados de demonstração)
 - ⏳ Frontend
 - ⏳ Autenticação/autorização
-- ⏳ Migração para banco de dados persistente

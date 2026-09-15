@@ -12,8 +12,8 @@ export class SolicitacaoService {
     private solicitacaoRepository: ISolicitacaoRepository,
   ) {}
 
-  criarSolicitacao(solicitacao: CriarSolicitacaoDTO) {
-    const slotsDisponiveis = this.slotRepository.buscarDisponiveisPorMentor(
+  async criarSolicitacao(solicitacao: CriarSolicitacaoDTO) {
+    const slotsDisponiveis = await this.slotRepository.buscarDisponiveisPorMentor(
       solicitacao.mentorId,
     );
     if (!slotsDisponiveis) {
@@ -53,17 +53,17 @@ export class SolicitacaoService {
     });
   }
 
-  listarSolicitacoesPendentes(mentorId: number): CriarSolicitacaoDTO[] {
+  async listarSolicitacoesPendentes(mentorId: number): Promise<CriarSolicitacaoDTO[]> {
     const solicitacoes =
-      this.solicitacaoRepository.buscarPendentesPorMentor(mentorId);
+      await this.solicitacaoRepository.buscarPendentesPorMentor(mentorId);
     return solicitacoes ? solicitacoes.map(this.mapSolicitacaoToDTO) : [];
   }
 
-  atualizarSolicitacao(
+  async atualizarSolicitacao(
     solicitacaoId: number,
     status: "aceita" | "recusada",
-  ): CriarSolicitacaoDTO | undefined {
-    const solicitacao = this.solicitacaoRepository.buscarPorId(solicitacaoId);
+  ): Promise<CriarSolicitacaoDTO | undefined> {
+    const solicitacao = await this.solicitacaoRepository.buscarPorId(solicitacaoId);
     if (!solicitacao) {
       throw new Error("Solicitação não encontrada.");
     }
@@ -74,14 +74,14 @@ export class SolicitacaoService {
 
     if (status === "aceita") {
       for (const slotId of solicitacao.slots) {
-        const slot = this.slotRepository.buscarPorId(slotId);
+        const slot = await this.slotRepository.buscarPorId(slotId);
         if (!slot || slot.status !== "disponivel") {
           throw new Error("Um ou mais slots da solicitação não estão disponíveis.");
         }
       }
     }
 
-    const solicitacaoAtualizada = this.solicitacaoRepository.atualizarStatus(
+    const solicitacaoAtualizada = await this.solicitacaoRepository.atualizarStatus(
       solicitacaoId,
       status,
     );
@@ -91,9 +91,9 @@ export class SolicitacaoService {
     }else{
       if (status === "aceita") {
         for (const slotId of solicitacaoAtualizada.slots) {
-          const slot = this.slotRepository.buscarPorId(slotId);
+          const slot = await this.slotRepository.buscarPorId(slotId);
           if (slot) {
-            this.slotRepository.atualizar({
+            await this.slotRepository.atualizar({
               ...slot,
               status: "indisponivel",
               disciplinaId: solicitacao.disciplinaId,

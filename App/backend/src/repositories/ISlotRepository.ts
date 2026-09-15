@@ -1,12 +1,12 @@
 import type { Slot } from "../entities/Slot.js";
 
 export interface ISlotRepository {
-  criar(slot: Slot): Slot;
-  buscarPorId(id: number): Slot | undefined;
-  buscarPorMentor(id: number): Slot[] | undefined;
-  buscarDisponiveisPorMentor(id: number): Slot[] | undefined;
-  buscarPorDisciplina(id: number): Slot[] | undefined;
-  atualizarStatus(id: number, status: "disponivel" | "indisponivel"): Slot | undefined;
-  atualizar(slot: Slot): Slot | undefined;
-  deletar(id: number): boolean;
+  criar(slot: Slot): Promise<Slot>;
+  buscarPorId(id: number): Promise<Slot | undefined>;
+  buscarPorMentor(id: number): Promise<Slot[] | undefined>;
+  buscarDisponiveisPorMentor(id: number): Promise<Slot[] | undefined>;
+  buscarPorDisciplina(id: number): Promise<Slot[] | undefined>;
+  atualizarStatus(id: number, status: "disponivel" | "indisponivel"): Promise<Slot | undefined>;
+  atualizar(slot: Slot): Promise<Slot | undefined>;
+  deletar(id: number): Promise<boolean>;
 }

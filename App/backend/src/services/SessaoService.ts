@@ -8,8 +8,8 @@ import type { ISlotRepository } from "../repositories/ISlotRepository.js";
 export class SessaoService {
   constructor(private sessaoRepository: ISessaoRepository, private slotRepository: ISlotRepository, private solicitacaoRepository: ISolicitacaoRepository) {}
 
-  adicionarFeedback(sessaoId: number, feedback: string): DetalhesSessaoDTO {
-    const sessao = this.sessaoRepository.buscarPorId(sessaoId);
+  async adicionarFeedback(sessaoId: number, feedback: string): Promise<DetalhesSessaoDTO> {
+    const sessao = await this.sessaoRepository.buscarPorId(sessaoId);
     if (!sessao) {
       throw new Error("Sessão não encontrada.");
     }
@@ -18,7 +18,7 @@ export class SessaoService {
     }
 
     sessao.feedbackMentorado = feedback;
-    const sessaoAtualizada = this.sessaoRepository.atualizarStatus(sessaoId, sessao.status);
+    const sessaoAtualizada = await this.sessaoRepository.atualizar(sessao);
     if (!sessaoAtualizada) {
       throw new Error("Erro ao adicionar feedback à sessão.");
     }
@@ -26,17 +26,14 @@ export class SessaoService {
     return this.mapSessaoToDetalhesSessaoDTO(sessaoAtualizada);
   }
 
-  alterarLinkReuniao(sessaoId: number, linkReuniao: string): DetalhesSessaoDTO {
-    const sessao = this.sessaoRepository.buscarPorId(sessaoId);
+  async alterarLinkReuniao(sessaoId: number, linkReuniao: string): Promise<DetalhesSessaoDTO> {
+    const sessao = await this.sessaoRepository.buscarPorId(sessaoId);
     if (!sessao) {
       throw new Error("Sessão não encontrada.");
     }
 
     sessao.linkReuniao = linkReuniao;
-    const sessaoAtualizada = this.sessaoRepository.atualizarStatus(
-      sessaoId,
-      sessao.status,
-    );
+    const sessaoAtualizada = await this.sessaoRepository.atualizar(sessao);
     if (!sessaoAtualizada) {
       throw new Error("Erro ao atualizar o link da reunião.");
     }
@@ -44,32 +41,32 @@ export class SessaoService {
     return this.mapSessaoToDetalhesSessaoDTO(sessaoAtualizada);
   }
 
-  buscarSessaoPorId(sessaoId: number): DetalhesSessaoDTO {
-    const sessao = this.sessaoRepository.buscarPorId(sessaoId);
+  async buscarSessaoPorId(sessaoId: number): Promise<DetalhesSessaoDTO> {
+    const sessao = await this.sessaoRepository.buscarPorId(sessaoId);
     if (!sessao) {
       throw new Error("Sessão não encontrada.");
     }
     return this.mapSessaoToDetalhesSessaoDTO(sessao);
   }
 
-  buscarSessoesPorMentor(mentorId: number): BasicSessaoDTO[] {
-    const sessoes = this.sessaoRepository.buscarPorMentor(mentorId);
+  async buscarSessoesPorMentor(mentorId: number): Promise<BasicSessaoDTO[]> {
+    const sessoes = await this.sessaoRepository.buscarPorMentor(mentorId);
     if (!sessoes) {
       throw new Error("Nenhuma sessão encontrada para o mentor.");
     }
     return sessoes.map(this.mapSessaoToBasicSessaoDTO);
   }
 
-  buscarSessoesPorMentorado(mentoradoId: number): BasicSessaoDTO[] {
-    const sessoes = this.sessaoRepository.buscarPorMentorado(mentoradoId);
+  async buscarSessoesPorMentorado(mentoradoId: number): Promise<BasicSessaoDTO[]> {
+    const sessoes = await this.sessaoRepository.buscarPorMentorado(mentoradoId);
     if (!sessoes) {
       throw new Error("Nenhuma sessão encontrada para o mentorado.");
     }
     return sessoes.map(this.mapSessaoToBasicSessaoDTO);
   }
 
-  atualizarStatusSessao(sessaoId: number, status: "concluida" | "cancelada"): BasicSessaoDTO {
-    const sessao = this.sessaoRepository.buscarPorId(sessaoId);
+  async atualizarStatusSessao(sessaoId: number, status: "concluida" | "cancelada"): Promise<BasicSessaoDTO> {
+    const sessao = await this.sessaoRepository.buscarPorId(sessaoId);
     if (!sessao) {
       throw new Error("Sessão não encontrada.");
     }
@@ -81,15 +78,15 @@ export class SessaoService {
       throw new Error("Não é possível alterar o status de uma sessão cancelada.");
     }
     
-    const sessaoAtualizada = this.sessaoRepository.atualizarStatus(sessaoId, status);
+    const sessaoAtualizada = await this.sessaoRepository.atualizarStatus(sessaoId, status);
     if (!sessaoAtualizada) {
       throw new Error("Erro ao atualizar o status da sessão.");
     }else{
       if (status === "cancelada") {
         for (const slotId of sessao.slots) {
-          const slot = this.slotRepository.buscarPorId(slotId);
+          const slot = await this.slotRepository.buscarPorId(slotId);
           if (slot) {
-            this.slotRepository.atualizar({
+            await this.slotRepository.atualizar({
               ...slot,
               disciplinaId: 0,
               status: "disponivel",
@@ -102,7 +99,7 @@ export class SessaoService {
     return this.mapSessaoToBasicSessaoDTO(sessaoAtualizada);
   }
 
-  criarSessao(solicitacaoDTO: CriarSolicitacaoDTO) {
+  async criarSessao(solicitacaoDTO: CriarSolicitacaoDTO) {
     if (solicitacaoDTO.status !== "aceita") {
       throw new Error("A solicitação deve ser aceita antes de criar a sessão.");
     }
@@ -110,13 +107,13 @@ export class SessaoService {
     if(solicitacaoDTO.solicitacaoId === undefined) {
       throw new Error("O ID da solicitação é obrigatório para criar uma sessão.");
     }
-    const solicitacao = this.solicitacaoRepository.buscarPorId(solicitacaoDTO.solicitacaoId);
+    const solicitacao = await this.solicitacaoRepository.buscarPorId(solicitacaoDTO.solicitacaoId);
     
     if (!solicitacao) {
       throw new Error("Solicitação não encontrada.");
     }
 
-    const sessao = this.sessaoRepository.criar({
+    const sessao = await this.sessaoRepository.criar({
       id: 0, // O ID será gerado pelo repositório
       mentorId: solicitacao.mentorId,
       mentoradoId: solicitacao.mentoradoId,

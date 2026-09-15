@@ -4,19 +4,19 @@ import type { Usuario } from "../../entities/Usuario.js";
 export class UsuarioRepositoryInMemory implements IUsuarioRepository {
   private usuarios: Usuario[] = [];
 
-  buscarPorId(id: number): Usuario | undefined {
+  async buscarPorId(id: number): Promise<Usuario | undefined> {
     return this.usuarios.find((usuario) => usuario.id === id);
   }
 
-  buscarPorEmail(email: string): Usuario | undefined {
+  async buscarPorEmail(email: string): Promise<Usuario | undefined> {
     return this.usuarios.find((usuario) => usuario.email === email);
   }
 
-  listarTodos(): Usuario[] {
+  async listarTodos(): Promise<Usuario[]> {
     return this.usuarios;
   }
 
-  criar(usuario: Usuario): Usuario {
+  async criar(usuario: Usuario): Promise<Usuario> {
     const novoId =
       this.usuarios.length > 0
         ? Math.max(...this.usuarios.map((u) => u.id)) + 1
@@ -26,7 +26,7 @@ export class UsuarioRepositoryInMemory implements IUsuarioRepository {
     return usuario;
   }
 
-  atualizar(usuario: Usuario): Usuario | undefined {
+  async atualizar(usuario: Usuario): Promise<Usuario | undefined> {
     const index = this.usuarios.findIndex((u) => u.id === usuario.id);
     if (index !== -1) {
       this.usuarios[index] = usuario;
@@ -35,7 +35,7 @@ export class UsuarioRepositoryInMemory implements IUsuarioRepository {
     return undefined;
   }
 
-  deletar(id: number): boolean {
+  async deletar(id: number): Promise<boolean> {
     const index = this.usuarios.findIndex((usuario) => usuario.id === id);
     if (index !== -1) {
       this.usuarios.splice(index, 1);

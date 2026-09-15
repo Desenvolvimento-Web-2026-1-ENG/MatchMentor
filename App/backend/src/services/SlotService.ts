@@ -7,7 +7,7 @@ const SLOT_DURATION_MINUTES = 15;
 export class SlotService {
   constructor(private slotRepository: ISlotRepository) {}
 
-  criar(slot: CriarSlotDTO): Slot[] {
+  async criar(slot: CriarSlotDTO): Promise<Slot[]> {
     if (slot.dataHora.getTime() < Date.now()) {
       throw new Error("Não é possível criar slots com data anterior à atual.");
     }
@@ -20,7 +20,7 @@ export class SlotService {
         slot.dataHora.getTime() + i * SLOT_DURATION_MINUTES * 60_000,
       );
       slotsCriados.push(
-        this.slotRepository.criar({
+        await this.slotRepository.criar({
           id: 0, // O ID será gerado pelo repositório
           mentorId: slot.mentorId,
           disciplinaId: 0,
@@ -34,28 +34,28 @@ export class SlotService {
     return slotsCriados;
   }
 
-  buscarPorMentor(id: number): Slot[] | undefined {
+  async buscarPorMentor(id: number): Promise<Slot[] | undefined> {
     return this.slotRepository.buscarPorMentor(id);
   }
 
-  buscarDisponiveisPorMentor(id: number): Slot[] | undefined {
-    const slots = this.slotRepository.buscarDisponiveisPorMentor(id);
+  async buscarDisponiveisPorMentor(id: number): Promise<Slot[] | undefined> {
+    const slots = await this.slotRepository.buscarDisponiveisPorMentor(id);
     return slots?.filter((slot) => slot.dataHora > new Date());
   }
 
-  buscarPorDisciplina(id: number): Slot[] | undefined {
+  async buscarPorDisciplina(id: number): Promise<Slot[] | undefined> {
     return this.slotRepository.buscarPorDisciplina(id);
   }
 
-  atualizarStatus(
+  async atualizarStatus(
     id: number,
     status: "disponivel" | "indisponivel",
-  ): Slot | undefined {
+  ): Promise<Slot | undefined> {
     return this.slotRepository.atualizarStatus(id, status);
   }
 
-  deletar(id: number): boolean {
-    const slot = this.slotRepository.buscarPorId(id);
+  async deletar(id: number): Promise<boolean> {
+    const slot = await this.slotRepository.buscarPorId(id);
     if (!slot) {
       throw new Error("Slot não encontrado");
     }

@@ -6,7 +6,7 @@ import type { IUsuarioRepository } from '../repositories/IUsuarioRepository.js';
 export class DisciplinaService {
     constructor(private disciplinaRepository: IDisciplinaRepository, private usuarioRepository: IUsuarioRepository) {}
 
-    criarDisciplina(disciplina: DetalhesDisciplinaDTO): Disciplina {
+    async criarDisciplina(disciplina: DetalhesDisciplinaDTO): Promise<Disciplina> {
         return this.disciplinaRepository.criar({
             id: 0, // O ID será gerado pelo repositório
             nome: disciplina.nome,
@@ -14,26 +14,28 @@ export class DisciplinaService {
         });
     }
 
-    adicionarDisciplinaAoUsuario(usuarioId: number, disciplinaId: number): void {
-        const disciplina = this.disciplinaRepository.buscarPorId(disciplinaId);
+    async adicionarDisciplinaAoUsuario(usuarioId: number, disciplinaId: number): Promise<void> {
+        const disciplina = await this.disciplinaRepository.buscarPorId(disciplinaId);
         if (!disciplina) {
             throw new Error('Disciplina não encontrada');
         }
 
-        const usuario = this.usuarioRepository.buscarPorId(usuarioId);
+        const usuario = await this.usuarioRepository.buscarPorId(usuarioId);
         if (!usuario) {
             throw new Error('Usuário não encontrado');
         }
 
         usuario.disciplinas.push(disciplina);
+        await this.usuarioRepository.atualizar(usuario);
     }
 
-    removerDisciplinaDoUsuario(usuarioId: number, disciplinaId: number): void {
-        const usuario = this.usuarioRepository.buscarPorId(usuarioId);
+    async removerDisciplinaDoUsuario(usuarioId: number, disciplinaId: number): Promise<void> {
+        const usuario = await this.usuarioRepository.buscarPorId(usuarioId);
         if (!usuario) {
             throw new Error('Usuário não encontrado');
         }
 
         usuario.disciplinas = usuario.disciplinas.filter(d => d.id !== disciplinaId);
+        await this.usuarioRepository.atualizar(usuario);
     }
 }

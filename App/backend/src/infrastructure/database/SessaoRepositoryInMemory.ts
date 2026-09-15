@@ -4,7 +4,7 @@ import type { ISessaoRepository } from "../../repositories/ISessaoRepository.js"
 export class SessaoRepositoryInMemory implements ISessaoRepository {
   private sessoes: Sessao[] = [];
 
-  criar(solicitacao: Sessao): Sessao {
+  async criar(solicitacao: Sessao): Promise<Sessao> {
     const novoId =
       this.sessoes.length > 0
         ? Math.max(...this.sessoes.map((sessao) => sessao.id)) + 1
@@ -14,47 +14,47 @@ export class SessaoRepositoryInMemory implements ISessaoRepository {
     return solicitacao;
   }
 
-  buscarPorId(id: number): Sessao | undefined {
+  async buscarPorId(id: number): Promise<Sessao | undefined> {
     return this.sessoes.find((sessao) => sessao.id === id);
   }
 
-  buscarPorMentorado(id: number): Sessao[] | undefined {
+  async buscarPorMentorado(id: number): Promise<Sessao[] | undefined> {
     return this.sessoes.filter((sessao) => sessao.mentoradoId === id);
   }
 
-  buscarAgendadasPorMentorado(id: number): Sessao[] | undefined {
+  async buscarAgendadasPorMentorado(id: number): Promise<Sessao[] | undefined> {
     return this.sessoes.filter(
       (sessao) => sessao.mentoradoId === id && sessao.status === "agendada",
     );
   }
 
-  buscarConcluidasPorMentorado(id: number): Sessao[] | undefined {
+  async buscarConcluidasPorMentorado(id: number): Promise<Sessao[] | undefined> {
     return this.sessoes.filter(
       (sessao) => sessao.mentoradoId === id && sessao.status === "concluida",
     );
   }
 
-  buscarPorMentor(id: number): Sessao[] | undefined {
+  async buscarPorMentor(id: number): Promise<Sessao[] | undefined> {
     return this.sessoes.filter((sessao) => sessao.mentorId === id);
   }
 
-  buscarAgendadasPorMentor(id: number): Sessao[] | undefined {
+  async buscarAgendadasPorMentor(id: number): Promise<Sessao[] | undefined> {
     return this.sessoes.filter(
       (sessao) => sessao.mentorId === id && sessao.status === "agendada",
     );
   }
 
-  buscarConcluidasPorMentor(id: number): Sessao[] | undefined {
+  async buscarConcluidasPorMentor(id: number): Promise<Sessao[] | undefined> {
     return this.sessoes.filter(
       (sessao) => sessao.mentorId === id && sessao.status === "concluida",
     );
   }
 
-  atualizarStatus(
+  async atualizarStatus(
     id: number,
     status: "agendada" | "concluida" | "cancelada",
-  ): Sessao | undefined {
-    const sessao = this.buscarPorId(id);
+  ): Promise<Sessao | undefined> {
+    const sessao = await this.buscarPorId(id);
     if (sessao) {
       sessao.status = status;
       return sessao;
@@ -62,7 +62,16 @@ export class SessaoRepositoryInMemory implements ISessaoRepository {
     return undefined;
   }
 
-  deletar(id: number): boolean {
+  async atualizar(sessao: Sessao): Promise<Sessao | undefined> {
+    const index = this.sessoes.findIndex((s) => s.id === sessao.id);
+    if (index !== -1) {
+      this.sessoes[index] = sessao;
+      return sessao;
+    }
+    return undefined;
+  }
+
+  async deletar(id: number): Promise<boolean> {
     const index = this.sessoes.findIndex((sessao) => sessao.id === id);
     if (index !== -1) {
       this.sessoes.splice(index, 1);

@@ -3,14 +3,14 @@ import type { SessaoService } from "../../services/SessaoService.js";
 export class SessaoController {
   constructor(private sessaoService: SessaoService) {}
 
-  listarSessoes(req: any, res: any) {
+  async listarSessoes(req: any, res: any) {
     try {
       const { usuarioId, perfil } = req.params;
       let sessoes;
       if (perfil === "mentor") {
-        sessoes = this.sessaoService.buscarSessoesPorMentor(Number(usuarioId));
+        sessoes = await this.sessaoService.buscarSessoesPorMentor(Number(usuarioId));
       } else if (perfil === "mentorado") {
-        sessoes = this.sessaoService.buscarSessoesPorMentorado(
+        sessoes = await this.sessaoService.buscarSessoesPorMentorado(
           Number(usuarioId),
         );
       } else {
@@ -23,9 +23,9 @@ export class SessaoController {
     }
   }
 
-  atualizarStatusSessao(req: any, res: any) {
+  async atualizarStatusSessao(req: any, res: any) {
     try {
-      const sessaoAtualizada = this.sessaoService.atualizarStatusSessao(
+      const sessaoAtualizada = await this.sessaoService.atualizarStatusSessao(
         Number(req.body.id),
         req.body.status
       );
@@ -35,20 +35,20 @@ export class SessaoController {
     }
   }
 
-  detalhesSessao(req: any, res: any) {
+  async detalhesSessao(req: any, res: any) {
     try {
       const { sessaoId } = req.params;
-      const sessao = this.sessaoService.buscarSessaoPorId(Number(sessaoId));
+      const sessao = await this.sessaoService.buscarSessaoPorId(Number(sessaoId));
       res.status(200).json(sessao);
     } catch (error: any) {
       res.status(400).json({ error: error.message });
     }
   }
 
-  criarSessao(req: any, res: any) {
+  async criarSessao(req: any, res: any) {
     try {
       const solicitacao = req.body;
-      const sessao = this.sessaoService.criarSessao(solicitacao);
+      const sessao = await this.sessaoService.criarSessao(solicitacao);
       res.status(201).json(sessao);
     } catch (error: any) {
       res.status(400).json({ error: error.message });

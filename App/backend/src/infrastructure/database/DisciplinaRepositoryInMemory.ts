@@ -4,15 +4,15 @@ import type { Disciplina } from "../../entities/Disciplina.js";
 export class DisciplinaRepositoryInMemory implements IDisciplinaRepository {
   private disciplinas: Disciplina[] = [];
 
-  buscarPorId(id: number): Disciplina | undefined {
+  async buscarPorId(id: number): Promise<Disciplina | undefined> {
     return this.disciplinas.find((disciplina) => disciplina.id === id);
   }
 
-  buscarTodos(): Disciplina[] {
+  async buscarTodos(): Promise<Disciplina[]> {
     return this.disciplinas;
   }
 
-  criar(disciplina: Disciplina): Disciplina {
+  async criar(disciplina: Disciplina): Promise<Disciplina> {
     const novoId =
       this.disciplinas.length > 0
         ? Math.max(...this.disciplinas.map((d) => d.id)) + 1
@@ -22,7 +22,7 @@ export class DisciplinaRepositoryInMemory implements IDisciplinaRepository {
     return disciplina;
   }
 
-  atualizar(disciplina: Disciplina): Disciplina | undefined {
+  async atualizar(disciplina: Disciplina): Promise<Disciplina | undefined> {
     const index = this.disciplinas.findIndex((d) => d.id === disciplina.id);
     if (index !== -1) {
       this.disciplinas[index] = disciplina;
@@ -31,7 +31,7 @@ export class DisciplinaRepositoryInMemory implements IDisciplinaRepository {
     return undefined;
   }
 
-  deletar(id: number): boolean {
+  async deletar(id: number): Promise<boolean> {
     const index = this.disciplinas.findIndex((d) => d.id === id);
     if (index !== -1) {
       this.disciplinas.splice(index, 1);
