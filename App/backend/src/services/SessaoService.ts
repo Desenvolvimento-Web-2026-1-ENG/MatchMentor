@@ -1,12 +1,20 @@
 import type { ISessaoRepository } from "../repositories/ISessaoRepository.js";
 import type { ISolicitacaoRepository } from "../repositories/ISolicitacaoRepository.js";
+import type { IUsuarioRepository } from "../repositories/IUsuarioRepository.js";
+import type { IDisciplinaRepository } from "../repositories/IDisciplinaRepository.js";
 import type { Sessao } from "../entities/Sessao.js";
 import type { BasicSessaoDTO, DetalhesSessaoDTO } from "./dtos/SessaoDTO.js";
 import type { CriarSolicitacaoDTO } from "./dtos/SolicitacaoDTO.js";
 import type { ISlotRepository } from "../repositories/ISlotRepository.js";
 
 export class SessaoService {
-  constructor(private sessaoRepository: ISessaoRepository, private slotRepository: ISlotRepository, private solicitacaoRepository: ISolicitacaoRepository) {}
+  constructor(
+    private sessaoRepository: ISessaoRepository,
+    private slotRepository: ISlotRepository,
+    private solicitacaoRepository: ISolicitacaoRepository,
+    private usuarioRepository: IUsuarioRepository,
+    private disciplinaRepository: IDisciplinaRepository,
+  ) {}
 
   async adicionarFeedback(sessaoId: number, feedback: string): Promise<DetalhesSessaoDTO> {
     const sessao = await this.sessaoRepository.buscarPorId(sessaoId);
@@ -54,7 +62,9 @@ export class SessaoService {
     if (!sessoes) {
       throw new Error("Nenhuma sessão encontrada para o mentor.");
     }
-    return sessoes.map(this.mapSessaoToBasicSessaoDTO);
+    return Promise.all(
+      sessoes.map((sessao) => this.mapSessaoToBasicSessaoDTO(sessao)),
+    );
   }
 
   async buscarSessoesPorMentorado(mentoradoId: number): Promise<BasicSessaoDTO[]> {
@@ -62,7 +72,9 @@ export class SessaoService {
     if (!sessoes) {
       throw new Error("Nenhuma sessão encontrada para o mentorado.");
     }
-    return sessoes.map(this.mapSessaoToBasicSessaoDTO);
+    return Promise.all(
+      sessoes.map((sessao) => this.mapSessaoToBasicSessaoDTO(sessao)),
+    );
   }
 
   async atualizarStatusSessao(sessaoId: number, status: "concluida" | "cancelada"): Promise<BasicSessaoDTO> {
@@ -76,6 +88,17 @@ export class SessaoService {
 
     if (sessao.status === "cancelada") {
       throw new Error("Não é possível alterar o status de uma sessão cancelada.");
+    }
+
+    if (status === "concluida") {
+      const fimDaSessao = new Date(
+        sessao.dataHora.getTime() + sessao.duracaoMinutos * 60_000,
+      );
+      if (fimDaSessao.getTime() > Date.now()) {
+        throw new Error(
+          "Só é possível concluir a sessão após o horário de término.",
+        );
+      }
     }
     
     const sessaoAtualizada = await this.sessaoRepository.atualizarStatus(sessaoId, status);
@@ -128,7 +151,13 @@ export class SessaoService {
     return sessao;
   }
 
-  private mapSessaoToDetalhesSessaoDTO(sessao: Sessao): DetalhesSessaoDTO {
+  private async mapSessaoToDetalhesSessaoDTO(sessao: Sessao): Promise<DetalhesSessaoDTO> {
+    const mentor = await this.usuarioRepository.buscarPorId(sessao.mentorId);
+    const mentorado = await this.usuarioRepository.buscarPorId(sessao.mentoradoId);
+    const disciplina = await this.disciplinaRepository.buscarPorId(
+      sessao.disciplinaId,
+    );
+
     return {
       id: sessao.id,
       mentorId: sessao.mentorId,
@@ -139,16 +168,31 @@ export class SessaoService {
       linkReuniao: sessao.linkReuniao,
       feedbackMentorado: sessao.feedbackMentorado,
       status: sessao.status,
+      mentorNome: mentor?.nome ?? "",
+      mentoradoNome: mentorado?.nome ?? "",
+      disciplinaNome: disciplina?.nome ?? "",
     };
   }
 
-  private mapSessaoToBasicSessaoDTO(sessao: Sessao): BasicSessaoDTO {
+  private async mapSessaoToBasicSessaoDTO(sessao: Sessao): Promise<BasicSessaoDTO> {
+    const mentor = await this.usuarioRepository.buscarPorId(sessao.mentorId);
+    const mentorado = await this.usuarioRepository.buscarPorId(sessao.mentoradoId);
+    const disciplina = await this.disciplinaRepository.buscarPorId(
+      sessao.disciplinaId,
+    );
+
     return {
       id: sessao.id,
+      mentorId: sessao.mentorId,
+      mentoradoId: sessao.mentoradoId,
       disciplinaId: sessao.disciplinaId,
       dataHora: sessao.dataHora,
       duracaoMinutos: sessao.duracaoMinutos,
       status: sessao.status,
+      mentorNome: mentor?.nome ?? "",
+      mentoradoNome: mentorado?.nome ?? "",
+      disciplinaNome: disciplina?.nome ?? "",
+      slotIds: sessao.slots,
     };
   }
 }

@@ -1,5 +1,7 @@
 import type { ISlotRepository } from "../repositories/ISlotRepository.js";
 import type { ISolicitacaoRepository } from "../repositories/ISolicitacaoRepository.js";
+import type { IUsuarioRepository } from "../repositories/IUsuarioRepository.js";
+import type { IDisciplinaRepository } from "../repositories/IDisciplinaRepository.js";
 import type { CriarSolicitacaoDTO } from "./dtos/SolicitacaoDTO.js";
 import type { Slot } from "../entities/Slot.js";
 import type { Solicitacao } from "../entities/Solicitacao.js";
@@ -10,9 +12,24 @@ export class SolicitacaoService {
   constructor(
     private slotRepository: ISlotRepository,
     private solicitacaoRepository: ISolicitacaoRepository,
+    private usuarioRepository: IUsuarioRepository,
+    private disciplinaRepository: IDisciplinaRepository,
   ) {}
 
   async criarSolicitacao(solicitacao: CriarSolicitacaoDTO) {
+    const solicitacoesDoMentorado = await this.solicitacaoRepository.buscarPorAluno(
+      solicitacao.mentoradoId,
+    );
+    const jaPossuiPendente = solicitacoesDoMentorado?.some(
+      (solicitacaoExistente) =>
+        solicitacaoExistente.status === "pendente" &&
+        solicitacaoExistente.mentorId === solicitacao.mentorId &&
+        solicitacaoExistente.dataHora.getTime() === solicitacao.dataHora.getTime(),
+    );
+    if (jaPossuiPendente) {
+      throw new Error("Você já possui uma solicitação pendente para este horário.");
+    }
+
     const slotsDisponiveis = await this.slotRepository.buscarDisponiveisPorMentor(
       solicitacao.mentorId,
     );
@@ -56,7 +73,11 @@ export class SolicitacaoService {
   async listarSolicitacoesPendentes(mentorId: number): Promise<CriarSolicitacaoDTO[]> {
     const solicitacoes =
       await this.solicitacaoRepository.buscarPendentesPorMentor(mentorId);
-    return solicitacoes ? solicitacoes.map(this.mapSolicitacaoToDTO) : [];
+    return solicitacoes
+      ? await Promise.all(
+          solicitacoes.map((solicitacao) => this.mapSolicitacaoToDTO(solicitacao)),
+        )
+      : [];
   }
 
   async atualizarSolicitacao(
@@ -76,7 +97,7 @@ export class SolicitacaoService {
       for (const slotId of solicitacao.slots) {
         const slot = await this.slotRepository.buscarPorId(slotId);
         if (!slot || slot.status !== "disponivel") {
-          throw new Error("Um ou mais slots da solicitação não estão disponíveis.");
+          throw new Error("Este horário já possui uma sessão confirmada.");
         }
       }
     }
@@ -100,12 +121,31 @@ export class SolicitacaoService {
             });
           }
         }
+
+        // Recusa automaticamente as demais solicitações pendentes do mesmo horário
+        const pendentesDoMentor =
+          await this.solicitacaoRepository.buscarPendentesPorMentor(
+            solicitacaoAtualizada.mentorId,
+          );
+        const pendentesMesmoHorario = (pendentesDoMentor ?? []).filter(
+          (pendente) =>
+            pendente.id !== solicitacaoAtualizada.id &&
+            pendente.dataHora.getTime() === solicitacaoAtualizada.dataHora.getTime(),
+        );
+        for (const pendente of pendentesMesmoHorario) {
+          await this.solicitacaoRepository.atualizarStatus(pendente.id, "recusada");
+        }
       }
     }
     return this.mapSolicitacaoToDTO(solicitacaoAtualizada);
   }  
 
-  mapSolicitacaoToDTO(solicitacao: Solicitacao): CriarSolicitacaoDTO {
+  async mapSolicitacaoToDTO(solicitacao: Solicitacao): Promise<CriarSolicitacaoDTO> {
+    const mentorado = await this.usuarioRepository.buscarPorId(solicitacao.mentoradoId);
+    const disciplina = await this.disciplinaRepository.buscarPorId(
+      solicitacao.disciplinaId,
+    );
+
     return {
       solicitacaoId: solicitacao.id,
       mentorId: solicitacao.mentorId,
@@ -114,6 +154,9 @@ export class SolicitacaoService {
       disciplinaId: solicitacao.disciplinaId,
       dataHora: solicitacao.dataHora,
       status: solicitacao.status,
+      slots: solicitacao.slots,
+      mentoradoNome: mentorado?.nome ?? "",
+      disciplinaNome: disciplina?.nome ?? "",
     };
   }
 }

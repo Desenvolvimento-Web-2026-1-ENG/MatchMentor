@@ -12,6 +12,29 @@ export class UsuarioController {
     }
   }
 
+  async listarUsuarios(req: any, res: any) {
+    try {
+      const usuarios = await this.usuarioService.listarUsuarios();
+      res.status(200).json(usuarios);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  }
+
+  async buscarUsuarioPorId(req: any, res: any) {
+    try {
+      const { usuarioId } = req.params;
+      const usuario = await this.usuarioService.obterUsuarioPorId(Number(usuarioId));
+      if (!usuario) {
+        res.status(404).json({ error: "Usuário não encontrado." });
+        return;
+      }
+      res.status(200).json(usuario);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  }
+
   async buscarMentoresPorDisciplina(req: any, res: any) {
     try {
       const { disciplinaId } = req.params;

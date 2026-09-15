@@ -73,12 +73,19 @@ router.get("/mentores/:mentorId/slots", (req, res) =>
 
 /**
  * @openapi
- * /slots:
+ * /slots/{slotId}:
  *   put:
  *     tags:
  *       - Slots
- *     summary: Atualiza o status de um slot
- *     description: Altera o status (disponivel ou indisponivel) de um slot existente, identificado pelo id no corpo da requisição.
+ *     summary: Edita um slot
+ *     description: Altera a data/hora e/ou o status de um slot existente. A data/hora só pode ser alterada quando o slot está disponível, deve ser futura e não pode conflitar com outro slot do mesmo mentor.
+ *     parameters:
+ *       - in: path
+ *         name: slotId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Identificador do slot.
  *     requestBody:
  *       required: true
  *       content:
@@ -105,7 +112,7 @@ router.get("/mentores/:mentorId/slots", (req, res) =>
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.put("/slots", (req, res) => controller.editar(req, res));
+router.put("/slots/:slotId", (req, res) => controller.editar(req, res));
 
 /**
  * @openapi

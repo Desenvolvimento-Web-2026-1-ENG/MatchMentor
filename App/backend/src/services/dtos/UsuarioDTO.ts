@@ -6,8 +6,9 @@ export interface CriarUsuarioDTO {
 }
 
 export interface DadosBasicosUsuarioDTO {
-  id: string;
+  id: number;
   nome: string;
   email: string;
   perfil: "mentor" | "mentorado";
+  disciplinas: { id: number; nome: string }[];
 }

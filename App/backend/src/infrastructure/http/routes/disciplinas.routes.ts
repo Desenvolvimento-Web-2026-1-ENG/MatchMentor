@@ -36,6 +36,32 @@ router.post("/disciplinas", (req, res) => controller.criarDisciplina(req, res));
 
 /**
  * @openapi
+ * /disciplinas:
+ *   get:
+ *     tags:
+ *       - Disciplinas
+ *     summary: Lista todas as disciplinas
+ *     description: Retorna o catálogo completo de disciplinas cadastradas (ordenadas por id).
+ *     responses:
+ *       200:
+ *         description: Lista de disciplinas.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Disciplina'
+ *       400:
+ *         description: Requisição inválida.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.get("/disciplinas", (req, res) => controller.listarDisciplinas(req, res));
+
+/**
+ * @openapi
  * /disciplinas/adicionar:
  *   post:
  *     tags:

@@ -11,7 +11,7 @@ export class UsuarioService {
 
   async criarUsuario(usuario: CriarUsuarioDTO): Promise<Usuario> {
     if (await this.usuarioRepository.buscarPorEmail(usuario.email)) {
-      throw new Error("E-mail já cadastrado");
+      throw new Error("Este e-mail já está cadastrado.");
     }
 
     let senhaHash = bcrypt.hashSync(usuario.senha, SALT_ROUNDS);
@@ -25,6 +25,16 @@ export class UsuarioService {
       dataCriacao: new Date(),
       disciplinas: [],
     });
+  }
+
+  async listarUsuarios(): Promise<DadosBasicosUsuarioDTO[]> {
+    const usuarios = await this.usuarioRepository.listarTodos();
+    return usuarios.map((usuario) => this.mapUsuarioToDTO(usuario));
+  }
+
+  async obterUsuarioPorId(id: number): Promise<DadosBasicosUsuarioDTO | undefined> {
+    const usuario = await this.usuarioRepository.buscarPorId(id);
+    return usuario ? this.mapUsuarioToDTO(usuario) : undefined;
   }
 
   async buscarUsuarioPorId(id: number): Promise<Usuario | undefined> {
@@ -47,24 +57,35 @@ export class UsuarioService {
       },
     );
 
-    // Lista de mentores que possuem slots disponíveis para a disciplina especificada
+    // Lista de mentores que possuem slots disponíveis futuros para a disciplina especificada
     let mentoresComSlotsDisponiveis: Usuario[] = [];
     for (const mentor of todosMentores) {
       const slotsDisponiveis = await this.slotRepository.buscarDisponiveisPorMentor(
         mentor.id,
       );
-      if (slotsDisponiveis && slotsDisponiveis.length > 0) {
+      const possuiSlotsFuturos = slotsDisponiveis?.some(
+        (slot) => slot.dataHora.getTime() > Date.now(),
+      );
+      if (possuiSlotsFuturos) {
         if (!mentoresComSlotsDisponiveis.some((m) => m.id === mentor.id)) {
           mentoresComSlotsDisponiveis.push(mentor);
         }
       }
     }
 
-    return mentoresComSlotsDisponiveis.map((mentor) => ({
-      id: mentor.id.toString(),
-      nome: mentor.nome,
-      email: mentor.email,
-      perfil: mentor.perfil,
-    }));
+    return mentoresComSlotsDisponiveis.map((mentor) => this.mapUsuarioToDTO(mentor));
+  }
+
+  private mapUsuarioToDTO(usuario: Usuario): DadosBasicosUsuarioDTO {
+    return {
+      id: usuario.id,
+      nome: usuario.nome,
+      email: usuario.email,
+      perfil: usuario.perfil,
+      disciplinas: usuario.disciplinas.map((disciplina) => ({
+        id: disciplina.id,
+        nome: disciplina.nome,
+      })),
+    };
   }
 }

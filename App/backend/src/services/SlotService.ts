@@ -1,6 +1,6 @@
 import type { ISlotRepository } from "../repositories/ISlotRepository.js";
 import type { Slot } from "../entities/Slot.js";
-import type { CriarSlotDTO } from "./dtos/SlotDTO.js";
+import type { AtualizarSlotDTO, CriarSlotDTO } from "./dtos/SlotDTO.js";
 
 const SLOT_DURATION_MINUTES = 15;
 
@@ -12,7 +12,16 @@ export class SlotService {
       throw new Error("Não é possível criar slots com data anterior à atual.");
     }
 
+    if (
+      slot.duracaoTotalMinutos <= 0 ||
+      slot.duracaoTotalMinutos % SLOT_DURATION_MINUTES !== 0
+    ) {
+      throw new Error("A duração deve ser um múltiplo de 15 minutos.");
+    }
+
     const quantidadeSlots = slot.duracaoTotalMinutos / SLOT_DURATION_MINUTES;
+    await this.verificarConflitoDeHorario(slot.mentorId, slot.dataHora, quantidadeSlots);
+
     const slotsCriados: Slot[] = [];
 
     for (let i = 0; i < quantidadeSlots; i++) {
@@ -52,6 +61,52 @@ export class SlotService {
     status: "disponivel" | "indisponivel",
   ): Promise<Slot | undefined> {
     return this.slotRepository.atualizarStatus(id, status);
+  }
+
+  async editar(slotId: number, dados: AtualizarSlotDTO): Promise<Slot | undefined> {
+    const slot = await this.slotRepository.buscarPorId(slotId);
+    if (!slot) {
+      return undefined;
+    }
+
+    if (dados.dataHora !== undefined) {
+      if (slot.status !== "disponivel") {
+        throw new Error("Não é possível editar um slot que não está disponível.");
+      }
+      if (dados.dataHora.getTime() < Date.now()) {
+        throw new Error("Não é possível criar slots com data anterior à atual.");
+      }
+      await this.verificarConflitoDeHorario(slot.mentorId, dados.dataHora, 1, slotId);
+    }
+
+    return this.slotRepository.atualizar({
+      ...slot,
+      ...(dados.dataHora !== undefined ? { dataHora: dados.dataHora } : {}),
+      ...(dados.status !== undefined ? { status: dados.status } : {}),
+    });
+  }
+
+  private async verificarConflitoDeHorario(
+    mentorId: number,
+    dataHoraInicial: Date,
+    quantidadeSlots: number,
+    ignorarSlotId?: number,
+  ): Promise<void> {
+    const slotsDoMentor = (await this.slotRepository.buscarPorMentor(mentorId)) ?? [];
+    const horariosOcupados = new Set(
+      slotsDoMentor
+        .filter((slot) => slot.id !== ignorarSlotId)
+        .map((slot) => slot.dataHora.getTime()),
+    );
+
+    for (let i = 0; i < quantidadeSlots; i++) {
+      const dataHora = new Date(
+        dataHoraInicial.getTime() + i * SLOT_DURATION_MINUTES * 60_000,
+      );
+      if (horariosOcupados.has(dataHora.getTime())) {
+        throw new Error("Já existe um slot nesse horário para este mentor.");
+      }
+    }
   }
 
   async deletar(id: number): Promise<boolean> {

@@ -17,8 +17,8 @@ const solicitacaoRepository = new SolicitacaoRepositoryPrisma();
 const usuarioRepository = new UsuarioRepositoryPrisma();
 
 const disciplinaService = new DisciplinaService(disciplinaRepository, usuarioRepository);
-const solicitacaoService = new SolicitacaoService(slotRepository, solicitacaoRepository);
-const sessaoService = new SessaoService(sessaoRepository, slotRepository, solicitacaoRepository);
+const solicitacaoService = new SolicitacaoService(slotRepository, solicitacaoRepository, usuarioRepository, disciplinaRepository);
+const sessaoService = new SessaoService(sessaoRepository, slotRepository, solicitacaoRepository, usuarioRepository, disciplinaRepository);
 const slotService = new SlotService(slotRepository);
 const usuarioService = new UsuarioService(usuarioRepository, slotRepository);
 

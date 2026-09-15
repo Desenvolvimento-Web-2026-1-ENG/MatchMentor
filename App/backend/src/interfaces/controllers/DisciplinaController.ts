@@ -14,6 +14,15 @@ export class DisciplinaController {
     }
   }
 
+  async listarDisciplinas(req: any, res: any) {
+    try {
+      const disciplinas = await this.disciplinaService.listarDisciplinas();
+      res.status(200).json(disciplinas);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  }
+
   async adicionarDisciplinaAoUsuario(req: any, res: any) {
     try {
       const { usuarioId, disciplinaId } = req.body;

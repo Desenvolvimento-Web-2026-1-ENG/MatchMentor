@@ -157,6 +157,34 @@ Com o servidor em execução, acesse:
 
 > A especificação é gerada automaticamente a partir dos arquivos em `App/backend/src/infrastructure/http/routes/*.ts` (comentários `@openapi`) e `App/backend/src/infrastructure/http/docs/schemas.yaml` (schemas reutilizáveis).
 
+### Endpoints principais
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| POST | `/api/v1/usuarios` | Cadastra um usuário (mentor ou mentorado) |
+| GET | `/api/v1/usuarios` | Lista todos os usuários (perfil e disciplinas) |
+| GET | `/api/v1/usuarios/:usuarioId` | Obtém os dados de um usuário |
+| GET | `/api/v1/usuarios/mentores/:disciplinaId` | Lista mentores de uma disciplina (com slots futuros disponíveis) |
+| GET | `/api/v1/usuarios/:usuarioId/disciplinas` | Lista as disciplinas de um usuário |
+| GET | `/api/v1/usuarios/:usuarioId/sessoes/:perfil` | Lista as sessões do usuário (`mentor` ou `mentorado`) |
+| POST | `/api/v1/disciplinas` | Cria uma disciplina |
+| GET | `/api/v1/disciplinas` | Lista o catálogo de disciplinas |
+| POST | `/api/v1/disciplinas/adicionar` | Vincula uma disciplina a um usuário |
+| POST | `/api/v1/disciplinas/remover` | Remove uma disciplina de um usuário |
+| POST | `/api/v1/slots` | Cria um bloco de slots de 15 minutos |
+| GET | `/api/v1/mentores/:mentorId/slots` | Lista os slots de um mentor |
+| GET | `/api/v1/mentores/:mentorId/slots/disponiveis` | Lista os slots disponíveis (futuros) de um mentor |
+| PUT | `/api/v1/slots/:slotId` | Edita a data/hora e/ou o status de um slot |
+| DELETE | `/api/v1/slots/:slotId` | Remove um slot |
+| POST | `/api/v1/solicitacoes` | Cria uma solicitação de mentoria |
+| GET | `/api/v1/solicitacoes/pendentes/:mentorId` | Lista as solicitações pendentes de um mentor |
+| PUT | `/api/v1/solicitacoes` | Aceita ou recusa uma solicitação |
+| POST | `/api/v1/sessoes` | Cria uma sessão a partir de uma solicitação aceita |
+| GET | `/api/v1/sessoes/:sessaoId` | Obtém os detalhes de uma sessão |
+| PUT | `/api/v1/sessoes` | Conclui ou cancela uma sessão |
+
+> O **CORS** está habilitado no servidor Express, permitindo o consumo da API pelo frontend (Vite, em `http://localhost:5173`).
+
 ---
 
 ## 🔄 Fluxo de Uso

@@ -6,4 +6,7 @@ export interface CriarSolicitacaoDTO {
   disciplinaId: number;  
   dataHora: Date;
   status?: "pendente" | "aceita" | "recusada";
+  slots?: number[];
+  mentoradoNome?: string;
+  disciplinaNome?: string;
 }

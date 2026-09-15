@@ -14,6 +14,10 @@ export class DisciplinaService {
         });
     }
 
+    async listarDisciplinas(): Promise<Disciplina[]> {
+        return this.disciplinaRepository.buscarTodos();
+    }
+
     async adicionarDisciplinaAoUsuario(usuarioId: number, disciplinaId: number): Promise<void> {
         const disciplina = await this.disciplinaRepository.buscarPorId(disciplinaId);
         if (!disciplina) {
@@ -23,6 +27,10 @@ export class DisciplinaService {
         const usuario = await this.usuarioRepository.buscarPorId(usuarioId);
         if (!usuario) {
             throw new Error('Usuário não encontrado');
+        }
+
+        if (usuario.disciplinas.some((disciplinaVinculada) => disciplinaVinculada.id === disciplinaId)) {
+            throw new Error('Esta disciplina já está no seu perfil.');
         }
 
         usuario.disciplinas.push(disciplina);

@@ -5,6 +5,6 @@ export interface CriarSlotDTO {
 }
 
 export interface AtualizarSlotDTO {
-    id: number;
-    status: "disponivel" | "indisponivel";
+    dataHora?: Date;
+    status?: "disponivel" | "indisponivel";
 }

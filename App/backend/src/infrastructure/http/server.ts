@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import usuarioRoutes from './routes/usuario.routes.js';
 import solicitacaoRoutes from './routes/solicitacao.routes.js';
 import slotRoutes from './routes/slot.routes.js';
@@ -8,6 +9,7 @@ import docsRoutes from './routes/docs.routes.js';
 
 const app = express();
 
+app.use(cors());
 app.use(express.json());
 app.use('/api/v1', usuarioRoutes);
 app.use('/api/v1', solicitacaoRoutes);

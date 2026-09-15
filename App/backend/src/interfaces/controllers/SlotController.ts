@@ -1,3 +1,4 @@
+import type { AtualizarSlotDTO } from "../../services/dtos/SlotDTO.js";
 import type { SlotService } from "../../services/SlotService.js";
 
 export class SlotController {
@@ -25,7 +26,16 @@ export class SlotController {
 
   async editar(req: any, res: any) {
     try {
-      const slot = await this.slotService.atualizarStatus(Number(req.body.id), req.body.status);
+      const { slotId } = req.params;
+      const dados: AtualizarSlotDTO = {};
+      if (req.body.dataHora !== undefined) {
+        dados.dataHora = new Date(req.body.dataHora);
+      }
+      if (req.body.status !== undefined) {
+        dados.status = req.body.status;
+      }
+
+      const slot = await this.slotService.editar(Number(slotId), dados);
       if (!slot) {
         res.status(404).json({ error: "Slot não encontrado." });
         return;
